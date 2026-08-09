@@ -284,6 +284,12 @@ rows it returns, so any total derived that way is unreliable.
 | Hooks never fire | Confirm the plugin is enabled, or that the five entries are in `settings.json`. Open `/hooks` to review; the UI only reports hooks that error or run slowly, so silent success is invisible by design. |
 | TLS connects, nothing responds | The instance is busy indexing. Wait rather than restart. |
 
+## Contributing
+
+This repository is maintained solely by InventDB and **does not accept external pull
+requests** — see [CONTRIBUTING.md](CONTRIBUTING.md). Fork it freely; the licence is
+designed for exactly that. Bug reports are welcome as issues.
+
 ## License
 
 [MIT](LICENSE) — use it, modify it, fork it, ship it commercially. Keep the copyright
