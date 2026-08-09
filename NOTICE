@@ -1,10 +1,14 @@
 inventdb-sessions
-Copyright 2026 InventDB
+Copyright (c) 2026 InventDB. All rights reserved.
 
-This product includes software developed at InventDB (https://inventdb.com).
+Original repository:
+https://github.com/inventdb/inventdb-claude-code-sessions
 
-Licensed under the Apache License, Version 2.0. You may obtain a copy of the
-License at http://www.apache.org/licenses/LICENSE-2.0
+Licensed under the InventDB Attribution Licence 1.0 — see LICENSE.
 
-"InventDB" and the InventDB logo are trademarks of InventDB. The Apache License
-grants no rights to use them; see section 6 of the License.
+You may use, modify and fork this software, including commercially, provided every
+copy retains the licence, the copyright notice, and a visible link to the original
+repository above.
+
+No patent rights are granted. "InventDB" and the InventDB logo are trademarks of
+InventDB and are not licensed for use beyond the required attribution.

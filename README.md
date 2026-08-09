@@ -282,9 +282,14 @@ rows it returns, so any total derived that way is unreliable.
 
 ## License
 
-Apache License 2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE). Fork it, modify it,
-ship it commercially; the licence also carries an express patent grant. It does not
-grant rights to the InventDB name or logo.
+**InventDB Attribution Licence 1.0** — see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+Use it, modify it and fork it, including commercially. Every copy or fork must keep the
+licence text, the copyright notice, and a visible link back to this repository:
+`https://github.com/inventdb/inventdb-claude-code-sessions`
+
+No patent rights are granted, and copyright stays with InventDB. The licence conveys no
+right to the InventDB name or logo beyond the attribution it requires.
 
 ## Security
 
