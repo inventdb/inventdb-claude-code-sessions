@@ -1,0 +1,9 @@
+{
+  "inventdb": {
+    "type": "http",
+    "url": "${INVENTDB_MCP_URL}",
+    "headers": {
+      "Authorization": "Bearer ${INVENTDB_MCP_TOKEN}"
+    }
+  }
+}

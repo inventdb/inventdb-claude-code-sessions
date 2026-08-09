@@ -1,0 +1,10 @@
+{
+  "name": "inventdb-sessions",
+  "description": "Mirror Claude Code session transcripts into InventDB as a queryable execution record, and query them back through the InventDB MCP server. Captures every command with its output, every file's pre-edit state, and every abandoned approach — the work that never reaches a commit.",
+  "version": "0.1.0",
+  "author": {
+    "name": "InventDB",
+    "url": "https://inventdb.com"
+  },
+  "keywords": ["inventdb", "sessions", "transcripts", "audit", "search", "mcp"]
+}

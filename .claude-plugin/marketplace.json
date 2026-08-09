@@ -1,0 +1,18 @@
+{
+  "name": "inventdb",
+  "description": "InventDB plugins for Claude Code.",
+  "owner": {
+    "name": "InventDB",
+    "url": "https://inventdb.com"
+  },
+  "plugins": [
+    {
+      "name": "inventdb-sessions",
+      "description": "Mirror Claude Code sessions into InventDB as a queryable execution record, and search them back through the InventDB MCP server.",
+      "author": { "name": "InventDB" },
+      "source": "./plugin",
+      "category": "development",
+      "homepage": "https://inventdb.com"
+    }
+  ]
+}

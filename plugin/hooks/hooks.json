@@ -1,0 +1,76 @@
+{
+  "_comment": "Session capture. Every hook is async:true so nothing blocks a turn, and the shipper always exits 0 so a mirror failure can never break a session. Exec form (command + args) is deliberate: it spawns node directly with no shell, so ${CLAUDE_PLUGIN_ROOT} paths containing spaces are safe on Windows and POSIX alike.",
+
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/ship-session.mjs"],
+            "async": true,
+            "timeout": 120,
+            "statusMessage": "Mirroring session to InventDB"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/ship-session.mjs"],
+            "async": true,
+            "timeout": 120,
+            "statusMessage": "Mirroring session to InventDB"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/ship-session.mjs"],
+            "async": true,
+            "timeout": 120,
+            "statusMessage": "Mirroring session to InventDB"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/ship-session.mjs"],
+            "async": true,
+            "timeout": 120,
+            "statusMessage": "Mirroring session to InventDB"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/ship-session.mjs"],
+            "async": true,
+            "timeout": 120,
+            "statusMessage": "Mirroring session to InventDB"
+          }
+        ]
+      }
+    ]
+  }
+}

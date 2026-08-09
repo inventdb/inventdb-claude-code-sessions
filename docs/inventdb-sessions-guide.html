@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InventDB &mdash; Claude Code Session Store (install &amp; operations guide)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #fafafa; color: #1a1a1a; line-height: 1.65; padding: 40px 24px; }
+  .container { max-width: 940px; margin: 0 auto; }
+  h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px; }
+  .subtitle { color: #666; font-size: 1rem; margin-bottom: 8px; }
+  .meta-line { font-size: 0.8rem; color: #999; margin-bottom: 28px; font-family: ui-monospace, monospace; }
+  h2 { font-size: 1.32rem; font-weight: 600; margin-top: 42px; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 2px solid #48176a; }
+  h3 { font-size: 1.06rem; font-weight: 600; margin-top: 26px; margin-bottom: 8px; color: #2a1240; }
+  h4 { font-size: 0.95rem; font-weight: 600; margin-top: 18px; margin-bottom: 6px; color: #333; }
+  p { margin-bottom: 12px; font-size: 0.95rem; }
+  ul, ol { margin-left: 22px; margin-bottom: 14px; }
+  li { padding: 3px 0; font-size: 0.95rem; }
+  code { font-family: ui-monospace, 'JetBrains Mono', Consolas, monospace; background: #efe9f3; padding: 2px 6px; border-radius: 4px; font-size: 0.86rem; }
+  pre { background: #1e1230; color: #ede7f6; padding: 14px 16px; border-radius: 8px; overflow-x: auto; font-size: 0.83rem; line-height: 1.55; margin: 10px 0; }
+  pre code { background: transparent; color: inherit; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #e5e5e5; vertical-align: top; }
+  th { background: #f1edf5; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: #555; }
+  td.mono, code.path { font-family: ui-monospace, monospace; font-size: 0.82rem; }
+  .check { color: #16a34a; font-weight: 600; }
+  .gap { color: #dc2626; font-weight: 600; }
+  .partial { color: #d97706; font-weight: 600; }
+  .box { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 18px 22px; margin: 14px 0; }
+  .box-warn { background: #fffbeb; border-color: #fbbf24; }
+  .box-ok { background: #f5f0fb; border-color: #c8a8e0; }
+  .box-key { background: #f3ecfa; border-color: #9333ea; border-left: 4px solid #9333ea; }
+  .box h4, .box-key h4 { font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.07em; color: #48176a; margin-bottom: 8px; margin-top: 0; }
+  .footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid #e5e5e5; font-size: 0.82rem; color: #888; }
+  a { color: #48176a; }
+  .toc { background:#fff; border:1px solid #e5e5e5; border-radius:10px; padding:14px 20px; margin:8px 0 10px; columns:2; column-gap:34px; }
+  .toc a { display:block; padding:3px 0; font-size:0.88rem; text-decoration:none; color:#2a1240; break-inside:avoid; }
+  .small { font-size:0.85rem; color:#666; }
+  .lede { font-size: 1.06rem; line-height: 1.6; color: #2a2a2a; margin-bottom: 16px; }
+  .tree { background:#fff; border:1px solid #e5e5e5; border-radius:8px; padding:14px 18px; font-family: ui-monospace, monospace; font-size:0.82rem; line-height:1.75; overflow-x:auto; }
+  .tree .c { color:#8a7a9a; }
+  .pill { display:inline-block; padding:1px 9px; border-radius:100px; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; }
+  .pill.yes { background:#dcfce7; color:#166534; } .pill.no { background:#fee2e2; color:#991b1b; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Claude Code Session Store</h1>
+<p class="subtitle">Installing and operating <code>inventdb-sessions</code> &mdash; the plugin that mirrors Claude Code sessions into InventDB as a queryable execution record, and queries them back over MCP.</p>
+<p class="meta-line">tools/claude-code-sessions/inventdb-sessions-guide.html &middot; August 2026 &middot; plugin v0.1.0 &middot; status: <span class="check">working</span></p>
+
+<div class="box box-key">
+<h4>What this is</h4>
+<p style="margin-bottom:0;">A session log is not a transcript &mdash; it is an <strong>execution record</strong>: every command with its output, every file&rsquo;s pre-edit state, every approach that was tried and abandoned. It is the only engineering artifact that contains the work which <em>failed</em>, and Claude Code deletes it after 30 days by default (<code>cleanupPeriodDays</code>). This plugin captures it into InventDB and makes it searchable by the whole team.</p>
+</div>
+
+<div class="toc">
+  <a href="#scope">1 &middot; Scope &amp; boundaries</a>
+  <a href="#arch">2 &middot; How it works</a>
+  <a href="#captured">3 &middot; What gets captured</a>
+  <a href="#install">4 &middot; Installation &mdash; four scenarios</a>
+  <a href="#config">5 &middot; Configuration</a>
+  <a href="#cli">6 &middot; CLI reference</a>
+  <a href="#query">7 &middot; Querying the archive</a>
+  <a href="#ops">8 &middot; Operations &amp; backfill</a>
+  <a href="#trouble">9 &middot; Troubleshooting</a>
+  <a href="#security">10 &middot; Security notes</a>
+</div>
+
+<h2 id="scope">1 &middot; Scope &amp; boundaries</h2>
+
+<p class="lede">Two boundaries decide everything else. Read them before planning a rollout.</p>
+
+<h3>Capture works on Claude Code only</h3>
+
+<p>Hooks are a Claude Code feature, and Claude Code is the only surface that writes local session transcripts. Everywhere else, session data lives server-side and there is no lifecycle event to hook.</p>
+
+<table>
+  <thead><tr><th>Surface</th><th>Local transcripts</th><th>Hooks</th><th>MCP</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Claude Code</strong></td><td><span class="pill yes">yes</span></td><td><span class="pill yes">yes</span></td><td><span class="pill yes">yes</span></td><td><strong>Capture + query</strong></td></tr>
+    <tr><td>Claude Desktop</td><td><span class="pill no">no</span></td><td><span class="pill no">no</span></td><td><span class="pill yes">yes</span></td><td>Query only</td></tr>
+    <tr><td>Claude web / Work / Teams</td><td><span class="pill no">no</span></td><td><span class="pill no">no</span></td><td><span class="pill yes">yes</span></td><td>Query only</td></tr>
+  </tbody>
+</table>
+
+<h3>It mirrors; it does not replace local storage</h3>
+
+<p><code>--resume</code>, <code>--continue</code>, the session picker, <code>/rewind</code> and compaction all read <code class="path">~/.claude/projects/&lt;project&gt;/&lt;session-id&gt;.jsonl</code> directly from disk &mdash; and the shipper reads those same files as its source. There is no hook event for listing or loading a session, so the local store cannot be redirected. InventDB is the queryable archive; the local files remain the working store. Never lower <code>cleanupPeriodDays</code> or delete transcripts as part of an install.</p>
+
+<h2 id="arch">2 &middot; How it works</h2>
+
+<p>Two independent halves, deliberately using different transports.</p>
+
+<table>
+  <thead><tr><th style="width:16%">Path</th><th style="width:26%">Mechanism</th><th>Why that mechanism</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Write</strong></td>
+      <td>5 async hooks &rarr; <code>ship-session.mjs</code> &rarr; REST <code>bulk</code></td>
+      <td>Fidelity requires tailing the local <code>.jsonl</code>, which only a local process can do. An MCP tool cannot read the user&rsquo;s disk when the instance is remote.</td>
+    </tr>
+    <tr>
+      <td><strong>Read</strong></td>
+      <td>InventDB MCP server (<code>sql</code>, <code>search</code>, <code>get</code>, <code>schema</code>)</td>
+      <td>Lets Claude query every past session mid-conversation. More useful than a session picker, because the real question is semantic or aggregate rather than a list of session UUIDs.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The shipper tails each transcript from a persisted <strong>byte watermark</strong> and bulk-inserts new lines. The watermark advances only after a successful write, so an interrupted or failed run resumes at the exact byte &mdash; no gaps, no duplicates. Re-running a fully-synced transcript inserts 0 rows.</p>
+
+<div class="tree">
+tools/claude-code-sessions/<br>
+&#9500;&#9472;&#9472; .claude-plugin/plugin.json &nbsp;&nbsp;<span class="c">plugin manifest</span><br>
+&#9500;&#9472;&#9472; .mcp.json &nbsp;&nbsp;<span class="c">InventDB MCP server (read path)</span><br>
+&#9500;&#9472;&#9472; hooks/hooks.json &nbsp;&nbsp;<span class="c">5 async capture hooks (write path)</span><br>
+&#9500;&#9472;&#9472; scripts/ship-session.mjs &nbsp;&nbsp;<span class="c">the shipper</span><br>
+&#9492;&#9472;&#9472; skills/inventdb-sessions/SKILL.md &nbsp;&nbsp;<span class="c">/inventdb-sessions</span>
+</div>
+
+<p class="small">Config and state live in <code class="path">~/.claude/inventdb-sync/</code>, never inside the plugin &mdash; the plugin directory is versioned and replaced on update, which would destroy watermarks and place credentials in a distributed tree.</p>
+
+<h2 id="captured">3 &middot; What gets captured</h2>
+
+<h3><code>&lt;ns&gt;.session_line</code> &mdash; one row per transcript line</h3>
+
+<table>
+  <thead><tr><th style="width:26%">Column</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td><code>session_id</code>, <code>seq</code></td><td>Session id and monotonic line index</td></tr>
+    <tr><td><code>ts</code>, <code>kind</code>, <code>role</code>, <code>model</code></td><td>Timestamp; line type (<code>user</code>/<code>assistant</code>/<code>attachment</code>/&hellip;); message role; model id</td></tr>
+    <tr><td><code>title</code></td><td><strong>Claude Code&rsquo;s own derived session name</strong>, from its <code>ai-title</code> lines. Sessions are retitled as they develop, so several are emitted &mdash; the highest <code>seq</code> is the current name.</td></tr>
+    <tr><td><code>last_prompt</code></td><td>Text of the session&rsquo;s <code>last-prompt</code> line</td></tr>
+    <tr><td><code>cwd</code>, <code>git_branch</code>, <code>cc_version</code></td><td>Where and on what the work happened</td></tr>
+    <tr><td><code>source_file</code>, <code>agent_id</code>, <code>parent_session</code></td><td>Provenance. Subagent and workflow transcripts embed their <em>parent&rsquo;s</em> session id, so the file path is the only thing that distinguishes them.</td></tr>
+    <tr><td><code>attachments</code></td><td>Count of inline binaries on that <strong>line</strong> (repeated on each chunk of a chunked line; files upload once, against <code>chunk_idx = 0</code>)</td></tr>
+    <tr><td><code>uuid</code>, <code>parent_uuid</code>, <code>request_id</code>, <code>is_sidechain</code>, <code>bytes</code>, <code>chunk_idx</code>, <code>chunk_n</code></td><td>Identity, threading, size and chunking</td></tr>
+    <tr><td><code>raw</code></td><td>The original line, <strong>byte-exact</strong></td></tr>
+  </tbody>
+</table>
+
+<h3>Attachments</h3>
+
+<p>Inline base64 payloads &mdash; pasted screenshots, images returned inside tool results &mdash; are uploaded as real InventDB attachments on the row that carried them, named <code>&lt;session&gt;-&lt;seq&gt;-&lt;n&gt;.&lt;ext&gt;</code>, and enter the normal extraction and embedding pipeline. <code>raw</code> still holds the original bytes: the attachment is <em>additional</em>, never a replacement, so the archive can always reconstruct the original line.</p>
+
+<pre><code>GET /attach/&lt;ns&gt;/session_line/&lt;record _id&gt;      # or the MCP attach_list tool</code></pre>
+
+<h3><code>&lt;ns&gt;.session_event</code> &mdash; one row per lifecycle event</h3>
+<p class="small"><code>session_id</code>, <code>event</code>, <code>ts</code>, <code>cwd</code>, <code>transcript_path</code>, <code>permission_mode</code>, <code>source</code>, <code>reason</code>, <code>host</code>.</p>
+
+<h2 id="install">4 &middot; Installation &mdash; four scenarios</h2>
+
+<h3>A &middot; Local directory &mdash; works today</h3>
+
+<p>Point Claude Code at an unpacked copy of the plugin. This needs no marketplace and no network, and is the supported path for air-gapped installs.</p>
+
+<pre><code>claude --plugin-dir &lt;path-to&gt;/claude-code-sessions
+
+# or register the directory that contains it as a marketplace
+/plugin marketplace add &lt;path-to-checkout&gt;
+/plugin install inventdb-sessions@inventdb</code></pre>
+
+<h3>B &middot; Marketplace &mdash; for team rollout</h3>
+
+<div class="box box-warn">
+<h4>Requires a published marketplace</h4>
+<p style="margin-bottom:0;"><code>/plugin marketplace add</code> clones the source repository on the user&rsquo;s machine, so the repository must be readable by that user. Substitute your published plugin repository below &mdash; a marketplace pointing at a private repository fails to clone for everyone who lacks access, which is most customers.</p>
+</div>
+
+<pre><code>/plugin marketplace add &lt;org&gt;/&lt;plugin-repo&gt;
+/plugin install inventdb-sessions@inventdb
+/inventdb-sessions setup https://acme.inventdb.com</code></pre>
+
+<p>To pre-register it for everyone working in a repo, commit to <code class="path">.claude/settings.json</code>:</p>
+<pre><code>{
+  "extraKnownMarketplaces": {
+    "inventdb": { "source": { "source": "github", "repo": "&lt;org&gt;/&lt;plugin-repo&gt;" } }
+  },
+  "enabledPlugins": { "inventdb-sessions@inventdb": true }
+}</code></pre>
+
+<p class="small">A marketplace can also be served from a URL or an npm package rather than a git repository, which avoids exposing any source tree at all.</p>
+
+<h3>C &middot; Skill only, no plugin</h3>
+<p>The skill installs the hooks into <code>settings.json</code> itself, so this works without the plugin system.</p>
+<pre><code>cp -r tools/claude-code-sessions/skills/inventdb-sessions ~/.claude/skills/
+mkdir -p ~/.claude/inventdb-sync
+cp tools/claude-code-sessions/scripts/ship-session.mjs ~/.claude/inventdb-sync/
+
+# then, in Claude Code
+/inventdb-sessions setup &lt;url&gt;</code></pre>
+<p class="small">Use <code class="path">~/.claude/skills/</code> for personal scope, or <code class="path">.claude/skills/</code> inside a repo to commit it for a team.</p>
+
+<h3>D &middot; Enterprise rollout</h3>
+<p>Deploy through managed settings (<code>managed-settings.json</code>, MDM, or the <code>ClaudeCode</code> registry key), and allowlist the MCP server with <code>allowedMcpServers</code>.</p>
+
+<div class="box box-warn">
+<h4>Use the plugin route in enterprise</h4>
+<p style="margin-bottom:0;"><code>strictPluginOnlyCustomization</code> blocks hooks from every non-plugin source, and <code>allowManagedHooksOnly</code> ignores user and project hooks entirely. Under either flag a settings-based install <strong>silently does nothing</strong> &mdash; no error, no capture &mdash; while a plugin install still works.</p>
+</div>
+
+<h3>Requirements</h3>
+<ul>
+  <li>Claude Code</li>
+  <li><code>node</code> on PATH (v18+; the shipper uses global <code>fetch</code>). If the hook environment cannot find it, replace <code>"command": "node"</code> in <code>hooks/hooks.json</code> with an absolute interpreter path.</li>
+  <li>A reachable InventDB instance and credentials.</li>
+</ul>
+
+<h2 id="config">5 &middot; Configuration</h2>
+
+<p>Set the target with the CLI rather than hand-editing JSON. It merges into <code class="path">~/.claude/inventdb-sync/config.json</code> at mode 0600, warns if the namespace is not a bare word, and <strong>verifies by logging in</strong> before reporting success.</p>
+
+<pre><code>node scripts/ship-session.mjs --set \
+  --url https://acme.inventdb.com \
+  --namespace inventdb_claude \
+  --user &lt;user&gt; --password &lt;pass&gt;
+
+node scripts/ship-session.mjs --show-config   # resolved path, secrets redacted</code></pre>
+
+<p><code>--token &lt;jwt&gt;</code> works instead of a password. Every field is overridable by environment variable &mdash; prefer these when a password on disk is unacceptable:</p>
+
+<p class="small"><code>INVENTDB_SYNC_BASE</code>, <code>INVENTDB_SYNC_NAMESPACE</code>, <code>INVENTDB_SYNC_USER</code>, <code>INVENTDB_SYNC_PASSWORD</code>, <code>INVENTDB_SYNC_TOKEN</code>, <code>INVENTDB_SYNC_CONFIG</code>. MCP: <code>INVENTDB_MCP_URL</code> (<code>&lt;base&gt;/mcp</code>) and <code>INVENTDB_MCP_TOKEN</code>.</p>
+
+<p><code>INVENTDB_SYNC_CONFIG</code> is authoritative <em>even when the file does not exist yet</em>, which is what makes it safe to point <code>--set</code> at a scratch config during testing.</p>
+
+<div class="box">
+<h4>Two configuration rules that bite</h4>
+<ul style="margin-bottom:0;">
+  <li><strong>Namespaces must use underscores</strong> (<code>inventdb_claude</code>, not <code>inventdb-claude</code>). A hyphen forces every SQL statement to quote the namespace.</li>
+  <li><strong>Use a bearer token for MCP, not OAuth discovery.</strong> InventDB advertises OAuth on <code>/mcp</code>, but behind a reverse proxy the advertised <code>resource_metadata</code> and <code>authorization_servers</code> are built from the proxied <code>Host</code> header and point at the instance&rsquo;s <em>internal</em> address, which no external client can reach.</li>
+</ul>
+</div>
+
+<p><strong>Watermarks are scoped per target</strong> (<code class="path">state/&lt;base&gt;__&lt;namespace&gt;/</code>). Repointing at a different instance correctly starts that target from scratch &mdash; sharing one set across instances would tell a new target that everything was already synced, so it would silently receive nothing.</p>
+
+<h2 id="cli">6 &middot; CLI reference</h2>
+
+<table>
+  <thead><tr><th style="width:38%">Command</th><th>Does</th></tr></thead>
+  <tbody>
+    <tr><td><code>--ping</code></td><td>Auth and target check</td></tr>
+    <tr><td><code>--status</code></td><td>Configured target plus per-transcript watermarks</td></tr>
+    <tr><td><code>--show-config</code></td><td>Resolved config path, secrets redacted</td></tr>
+    <tr><td><code>--set --url … --user … --password …</code></td><td>Write config, then verify by logging in</td></tr>
+    <tr><td><code>--file &lt;p.jsonl&gt;</code></td><td>Backfill one transcript</td></tr>
+    <tr><td><code>--all</code></td><td>Backfill every transcript, smallest first, walking recursively</td></tr>
+  </tbody>
+</table>
+
+<h2 id="query">7 &middot; Querying the archive</h2>
+
+<p>Run these through the MCP <code>sql</code> tool, or <code>POST &lt;base&gt;/sql</code>.</p>
+
+<pre><code>-- Session index by NAME rather than UUID
+SELECT session_id, title, ts FROM &lt;ns&gt;.session_line
+WHERE title IS NOT NULL ORDER BY ts DESC;
+
+-- Has anyone already debugged this error?
+SELECT session_id, ts, git_branch, cwd FROM &lt;ns&gt;.session_line
+WHERE raw LIKE '%&lt;error text&gt;%' ORDER BY ts;
+
+-- What did this file look like before it was edited?
+SELECT ts, session_id, raw FROM &lt;ns&gt;.session_line
+WHERE raw LIKE '%&lt;filename&gt;%' AND raw LIKE '%old_string%' ORDER BY ts;
+
+-- Sessions that captured screenshots or other binaries
+SELECT session_id, seq, attachments FROM &lt;ns&gt;.session_line
+WHERE attachments &gt; 0 AND chunk_idx = 0;
+
+-- Reconstruct a session in order
+SELECT seq, kind, role, raw FROM &lt;ns&gt;.session_line
+WHERE session_id = '&lt;id&gt;' ORDER BY seq;</code></pre>
+
+<p><code>raw</code> holds the original line byte-exact, so <code>LIKE</code> over it searches everything &mdash; prompts, tool inputs, command output, pre-edit file contents. For fuzzy recall use the MCP <code>search</code> tool (BM25) or <code>MEANING()</code> instead.</p>
+
+<div class="box box-warn">
+<h4>Counting rule</h4>
+<p style="margin-bottom:0;">To verify completeness use <code>SELECT COUNT(*) &hellip; WHERE &hellip;</code>, one query per file. Do not count DISTINCT values client-side from a fetched row set &mdash; <code>/sql</code> caps the rows it returns, so any total derived that way is unreliable.</p>
+</div>
+
+<h2 id="ops">8 &middot; Operations &amp; backfill</h2>
+
+<h3>Steady state</h3>
+<p>All five hooks are <code>async: true</code>, so capture never blocks a turn, and the shipper exits 0 on every path &mdash; a mirror failure cannot break a session. Errors go to <code class="path">~/.claude/inventdb-sync/state/sync.log</code>, never into the session. Steady-state capture is a few KB per turn.</p>
+
+<h3>Backfilling history</h3>
+<p>Size it first and say the number out loud &mdash; a single developer&rsquo;s history is routinely over 1 GB across more than 1,000 files, with most bytes in a handful of enormous transcripts.</p>
+
+<pre><code>find ~/.claude/projects -name '*.jsonl' | wc -l
+node scripts/ship-session.mjs --all</code></pre>
+
+<div class="box box-warn">
+<h4>A large import is not free</h4>
+<p>InventDB maintains indexes on write, so a bulk backfill does full property and vector indexing as it goes. On a small instance that work can saturate the server until it catches up.</p>
+<p style="margin-bottom:0;"><strong>Wait; do not restart the instance.</strong> Pace large loads, or start from adoption and let the archive build forward. Nothing is lost either way: a failed file resumes at the exact byte.</p>
+</div>
+
+<h3>Expected transient failures</h3>
+<p>Sustained write load can produce occasional 5xx responses, which the shipper retries with backoff. Do not investigate these as content bugs &mdash; re-send the same batch first; if it succeeds, it was load rather than the data.</p>
+
+<h2 id="trouble">9 &middot; Troubleshooting</h2>
+
+<table>
+  <thead><tr><th style="width:34%">Symptom</th><th>Check</th></tr></thead>
+  <tbody>
+    <tr><td>Capture stopped</td><td><code>--status</code> first &mdash; it prints the target actually configured. The most common cause is a config repointed at a different or stopped instance.</td></tr>
+    <tr><td><code>ECONNREFUSED</code></td><td>The configured instance is not running. Nothing is lost; watermarks do not advance on failure.</td></tr>
+    <tr><td>No errors visible anywhere</td><td>The shipper never prints into a session by design. Read <code class="path">state/sync.log</code>.</td></tr>
+    <tr><td>Rows stopped advancing</td><td><code>--status</code> against the live transcript size. Then check for stale <code>.lock</code> files in <code class="path">state/</code>, left by a killed process; they self-clear after 5 minutes.</td></tr>
+    <tr><td>Hooks never fire</td><td>Confirm the plugin is enabled, or that the five entries are in <code>settings.json</code>. Open <code>/hooks</code> to review &mdash; the UI only reports hooks that error or run slowly, so silent success is invisible by design.</td></tr>
+    <tr><td>TLS connects but nothing responds</td><td>The instance is busy indexing. Wait rather than restart.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="security">10 &middot; Security notes</h2>
+
+<ul>
+  <li><strong>Session logs contain whatever was on screen</strong> &mdash; command output, file contents, and any secrets that passed through a terminal. Treat the namespace as sensitive and scope it with row-level security; contractor and staff sessions can share one database under different access rules.</li>
+  <li><strong>Credentials never enter the plugin tree.</strong> Config lives in <code class="path">~/.claude/inventdb-sync/config.json</code> at mode 0600, and <code>config.json</code> is gitignored repo-wide. Prefer the environment variables where a password on disk is unacceptable.</li>
+  <li><strong>Capture is per-user and explicit.</strong> Nothing is captured until a target is configured, and <code>uninstall</code> removes the hooks while leaving data intact.</li>
+</ul>
+
+<div class="footer">
+  <p><strong>Summary.</strong> A team&rsquo;s session logs are the only record that includes the work that failed &mdash; everything else in the toolchain is a record of success, written by the winner. Capture on Claude Code, query everywhere over MCP, and keep the local <code>.jsonl</code> files exactly where they are.</p>
+  <p class="small" style="margin-top:10px;">Skill: <code>/inventdb-sessions</code> &middot; config + state: <code class="path">~/.claude/inventdb-sync/</code> &middot; see <a href="README.md">README.md</a>.</p>
+</div>
+
+</div>
+</body>
+</html>
