@@ -113,7 +113,8 @@ GET /attach/<ns>/session_line/<record _id>      # or the MCP attach_list tool
 ## Installation
 
 **Requirements:** Claude Code; `node` on PATH (v18+, for global `fetch`); a reachable
-InventDB instance and credentials.
+InventDB instance and credentials. The endpoints used here are documented in the
+[InventDB API reference](https://www.inventdb.com/api.html).
 
 ### A · Marketplace (recommended)
 

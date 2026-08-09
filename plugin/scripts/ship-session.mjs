@@ -9,7 +9,7 @@
  *   node ship-session.mjs --all                  backfill every transcript
  *   node ship-session.mjs --status               per-session watermarks
  *
- * InventDB API contract:
+ * InventDB API contract (full reference: https://www.inventdb.com/api.html):
  *   POST /api/auth/login              -> { ok, token }        JWT, ~8h
  *   POST /api/{ns}/{type}/bulk        -> { ok, insertedCount, ids, error }
  *        body = bare array | { documents: [...] }; ns+type created lazily
