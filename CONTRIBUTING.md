@@ -23,4 +23,4 @@ logs capture whatever was on screen, which routinely includes secrets.
 
 ## Security
 
-Do not report security issues in a public issue. Email security@inventdb.com instead.
+Do not report security issues in a public issue. Email contact@inventdb.com instead.
