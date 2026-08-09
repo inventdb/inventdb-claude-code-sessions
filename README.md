@@ -63,7 +63,7 @@ run resumes at the exact byte — no gaps, no duplicates. Re-running a fully-syn
 transcript inserts 0 rows.
 
 ```
-claude-code-sessions/
+inventdb-claude-code-sessions/
 ├── .claude-plugin/marketplace.json     marketplace manifest
 ├── plugin/
 │   ├── .claude-plugin/plugin.json      plugin manifest
@@ -119,7 +119,7 @@ InventDB instance and credentials. The endpoints used here are documented in the
 ### A · Marketplace (recommended)
 
 ```
-/plugin marketplace add inventdb/claude-code-sessions
+/plugin marketplace add inventdb/inventdb-claude-code-sessions
 /plugin install inventdb-sessions@inventdb
 /inventdb-sessions setup https://acme.inventdb.com
 ```
@@ -130,7 +130,7 @@ To pre-register it for everyone working in a repo, commit to `.claude/settings.j
 {
   "extraKnownMarketplaces": {
     "inventdb": {
-      "source": { "source": "github", "repo": "inventdb/claude-code-sessions" }
+      "source": { "source": "github", "repo": "inventdb/inventdb-claude-code-sessions" }
     }
   },
   "enabledPlugins": { "inventdb-sessions@inventdb": true }
@@ -140,8 +140,8 @@ To pre-register it for everyone working in a repo, commit to `.claude/settings.j
 ### B · Local directory (air-gapped or offline)
 
 ```
-git clone https://github.com/inventdb/claude-code-sessions
-claude --plugin-dir claude-code-sessions/plugin
+git clone https://github.com/inventdb/inventdb-claude-code-sessions
+claude --plugin-dir inventdb-claude-code-sessions/plugin
 ```
 
 or register the clone as a marketplace:
@@ -279,6 +279,12 @@ rows it returns, so any total derived that way is unreliable.
 | Rows stopped advancing | Compare `--status` against the live transcript size, then look for stale `.lock` files in `state/` — they clear after 5 minutes. |
 | Hooks never fire | Confirm the plugin is enabled, or that the five entries are in `settings.json`. Open `/hooks` to review; the UI only reports hooks that error or run slowly, so silent success is invisible by design. |
 | TLS connects, nothing responds | The instance is busy indexing. Wait rather than restart. |
+
+## License
+
+Apache License 2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE). Fork it, modify it,
+ship it commercially; the licence also carries an express patent grant. It does not
+grant rights to the InventDB name or logo.
 
 ## Security
 
