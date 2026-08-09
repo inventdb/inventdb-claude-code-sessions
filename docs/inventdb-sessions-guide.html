@@ -258,9 +258,9 @@ node scripts/ship-session.mjs --show-config   # resolved path, secrets redacted<
 SELECT session_id, title, ts FROM &lt;ns&gt;.session_line
 WHERE title IS NOT NULL ORDER BY ts DESC;
 
--- Has anyone already debugged this error?
+-- Has anyone already debugged this error?  (no ORDER BY — see the sorting note)
 SELECT session_id, ts, git_branch, cwd FROM &lt;ns&gt;.session_line
-WHERE raw LIKE '%&lt;error text&gt;%' ORDER BY ts;
+WHERE raw LIKE '%&lt;error text&gt;%';
 
 -- What did this file look like before it was edited?
 SELECT ts, session_id, raw FROM &lt;ns&gt;.session_line
@@ -274,7 +274,12 @@ WHERE attachments &gt; 0 AND chunk_idx = 0;
 SELECT seq, kind, role, raw FROM &lt;ns&gt;.session_line
 WHERE session_id = '&lt;id&gt;' ORDER BY seq;</code></pre>
 
-<p><code>raw</code> holds the original line byte-exact, so <code>LIKE</code> over it searches everything &mdash; prompts, tool inputs, command output, pre-edit file contents. For fuzzy recall use the MCP <code>search</code> tool (BM25) or <code>MEANING()</code> instead.</p>
+<p><code>raw</code> holds the original line byte-exact, so <code>LIKE</code> over it searches everything &mdash; prompts, tool inputs, command output, pre-edit file contents. <code>LIKE</code> is case-insensitive. For fuzzy recall use the MCP <code>search</code> tool (BM25) or <code>MEANING()</code> instead.</p>
+
+<div class="box box-warn">
+<h4>Sorting note</h4>
+<p style="margin-bottom:0;">Do not add <code>ORDER BY</code> to a query whose only filter is a single <code>LIKE</code> &mdash; it returns a fraction of the matching rows, sometimes none, and reports no error. Sort client-side instead, or add a second predicate. <code>ORDER BY</code> is safe with equality filters, <code>IS NOT NULL</code>, <code>GROUP BY</code>, and with two or more <code>LIKE</code> terms. When a count matters, confirm it against <code>SELECT COUNT(*)</code> with the same <code>WHERE</code>.</p>
+</div>
 
 <div class="box box-warn">
 <h4>Counting rule</h4>

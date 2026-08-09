@@ -233,9 +233,9 @@ silently receive nothing.
 SELECT session_id, title, ts FROM <ns>.session_line
 WHERE title IS NOT NULL ORDER BY ts DESC;
 
--- Has anyone already debugged this error?
+-- Has anyone already debugged this error?  (see the sorting note below)
 SELECT session_id, ts, git_branch, cwd FROM <ns>.session_line
-WHERE raw LIKE '%<error text>%' ORDER BY ts;
+WHERE raw LIKE '%<error text>%';
 
 -- What did this file look like before it was edited?
 SELECT ts, session_id, raw FROM <ns>.session_line
@@ -251,8 +251,14 @@ WHERE session_id = '<id>' ORDER BY seq;
 ```
 
 `raw` holds the original line byte-exact, so `LIKE` over it searches everything — prompts,
-tool inputs, command output, pre-edit file contents. For fuzzy recall use the MCP `search`
-tool (BM25) or `MEANING()`.
+tool inputs, command output, pre-edit file contents. `LIKE` is case-insensitive. For fuzzy
+recall use the MCP `search` tool (BM25) or `MEANING()`.
+
+> **Sorting note.** Do not add `ORDER BY` to a query whose only filter is a single
+> `LIKE`. Sort the rows client-side instead, or add a second predicate. `ORDER BY` is
+> safe with equality filters, `IS NOT NULL`, `GROUP BY`, and with two or more `LIKE`
+> terms.
+
 
 **Counting rule.** To verify completeness use `SELECT COUNT(*) … WHERE …`, one query per
 file. Do not count DISTINCT values client-side from a fetched row set — `/sql` caps the

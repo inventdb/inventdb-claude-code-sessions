@@ -200,9 +200,9 @@ Use the MCP `sql` tool if registered, otherwise `POST <base>/sql`. Schema in §6
 SELECT session_id, title, ts FROM <ns>.session_line
 WHERE title IS NOT NULL ORDER BY ts DESC;
 
--- Has anyone already debugged this error?
+-- Has anyone already debugged this error?  (no ORDER BY — see the sorting note)
 SELECT session_id, ts, git_branch, cwd FROM <ns>.session_line
-WHERE raw LIKE '%<error text>%' ORDER BY ts;
+WHERE raw LIKE '%<error text>%';
 
 -- What did this file look like before it was edited?
 SELECT ts, session_id, raw FROM <ns>.session_line
@@ -222,8 +222,14 @@ WHERE session_id = '<id>' ORDER BY seq;
 ```
 
 `raw` holds the original transcript line byte-exact, so `LIKE` over it searches
-everything — prompts, tool inputs, command output, pre-edit file contents. For fuzzy
-recall use the MCP `search` tool (BM25) or `MEANING()`.
+everything — prompts, tool inputs, command output, pre-edit file contents. `LIKE` is
+case-insensitive. For fuzzy recall use the MCP `search` tool (BM25) or `MEANING()`.
+
+**Sorting rule.** Never add `ORDER BY` to a query whose only filter is a single `LIKE` —
+it returns a fraction of the matching rows, sometimes none, with no error. Sort
+client-side, or add a second predicate. `ORDER BY` is safe with equality filters,
+`IS NOT NULL`, `GROUP BY`, and with two or more `LIKE` terms. When a result set matters,
+confirm it against `SELECT COUNT(*)` with the same `WHERE`.
 
 Inline binaries are uploaded as InventDB attachments on the row that carried them, named
 `<session>-<seq>-<n>.<ext>`. List them with `GET /attach/<ns>/session_line/<record _id>`
