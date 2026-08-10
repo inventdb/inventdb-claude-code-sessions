@@ -95,15 +95,21 @@ directory is versioned and replaced on update.
 | `source_file`, `agent_id`, `parent_session` | Provenance. Subagent and workflow transcripts embed their *parent's* session id, so the path is what distinguishes them. |
 | `attachments` | Count of inline binaries on that line |
 | `uuid`, `parent_uuid`, `request_id`, `is_sidechain`, `bytes`, `chunk_idx`, `chunk_n` | Identity, threading, size, chunking |
-| `raw` | The original line, **byte-exact** |
+| *(the whole transcript line)* | Stored as a **nested document**, not a string — every original field is a real column, so `message.usage.input_tokens`, `message.model` and `type` are directly queryable with `SELECT`, `WHERE`, `SUM` and `GROUP BY` |
+| `raw` | Present **only** for a line that failed to parse, so nothing is ever dropped |
 
 ### Attachments
 
 Inline base64 payloads — pasted screenshots, images returned inside tool results — are
 uploaded as real InventDB attachments on the row that carried them, named
-`<session>-<seq>-<n>.<ext>`, and enter the normal extraction and embedding pipeline.
-`raw` still holds the original bytes: the attachment is *additional*, never a
-replacement, so the archive can always reconstruct the original line.
+`<session>-<seq>-<n>.<ext>`, and enter the normal extraction and embedding pipeline. The
+payload is then **replaced in the row by a small descriptor**, so a screenshot is stored
+once as a file rather than twice as text:
+
+```json
+"source": { "type": "base64", "media_type": "image/png",
+            "bytes": 245828, "stored_as": "attachment" }
+```
 
 ```
 GET /attach/<ns>/session_line/<record _id>      # or the MCP attach_list tool
@@ -245,13 +251,24 @@ WHERE raw LIKE '%<filename>%' AND raw LIKE '%old_string%' ORDER BY ts;
 SELECT session_id, seq, attachments FROM <ns>.session_line
 WHERE attachments > 0 AND chunk_idx = 0;
 
+-- Token usage, computed in SQL (this is what nested storage buys you)
+SELECT session_id,
+       SUM(message.usage.input_tokens)             AS input_tokens,
+       SUM(message.usage.output_tokens)            AS output_tokens,
+       SUM(message.usage.cache_read_input_tokens)  AS cache_read_tokens
+FROM <ns>.session_line GROUP BY session_id;
+
+-- Which models did the work?
+SELECT message.model AS model, COUNT(*) AS n FROM <ns>.session_line
+WHERE message.model IS NOT NULL GROUP BY message.model;
+
 -- Reconstruct a session in order
-SELECT seq, kind, role, raw FROM <ns>.session_line
+SELECT seq, kind, role, message FROM <ns>.session_line
 WHERE session_id = '<id>' ORDER BY seq;
 ```
 
-`raw` holds the original line byte-exact, so `LIKE` over it searches everything — prompts,
-tool inputs, command output, pre-edit file contents. `LIKE` is case-insensitive. For fuzzy
+Each line is stored as a nested document, so the transcript's own structure is queryable
+rather than trapped in a string. `LIKE` over a text field is case-insensitive. For fuzzy
 recall use the MCP `search` tool (BM25) or `MEANING()`.
 
 > **Sorting note.** Do not add `ORDER BY` to a query whose only filter is a single

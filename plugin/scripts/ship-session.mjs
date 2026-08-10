@@ -267,6 +267,36 @@ function inlineBinaries(node, out = [], depth = 0) {
   return out
 }
 
+/**
+ * Deep copy with every inline base64 payload replaced by a small descriptor.
+ *
+ * The bytes are uploaded as a real InventDB attachment, so keeping them inline as well
+ * would store a screenshot twice and bloat every row that carries one. What stays is
+ * the shape — media type and size — which is what a query would ask about anyway.
+ */
+function stripInlineBinaries(node, depth = 0) {
+  if (node === null || typeof node !== 'object' || depth > 12) return node
+  if (Array.isArray(node)) return node.map((v) => stripInlineBinaries(v, depth + 1))
+  const out = {}
+  for (const [k, v] of Object.entries(node)) {
+    if (
+      k === 'source' &&
+      v && typeof v === 'object' && !Array.isArray(v) &&
+      v.type === 'base64' && typeof v.data === 'string'
+    ) {
+      out[k] = {
+        type: 'base64',
+        media_type: v.media_type || null,
+        bytes: Buffer.byteLength(v.data, 'utf8'),
+        stored_as: 'attachment',
+      }
+    } else {
+      out[k] = stripInlineBinaries(v, depth + 1)
+    }
+  }
+  return out
+}
+
 const EXT = {
   'image/png': 'png',
   'image/jpeg': 'jpg',
@@ -369,14 +399,30 @@ function rowsForLine(cfg, sessionId, line, seq, origin = {}) {
     request_id: j?.requestId ?? null,
     bytes: Buffer.byteLength(line, 'utf8'),
   }
-  // `raw` still holds the payload byte-exact — attachments are additional, never a
-  // replacement, so the archive can always reconstruct the original line.
+  // Extract binaries BEFORE stripping — the upload still needs the payload.
   const images = cfg.uploadAttachments ? inlineBinaries(j) : []
   base.attachments = images.length
 
-  const parts = splitRaw(line, cfg.maxRawBytes)
+  // A line that did not parse has no structure to store, so keep its text verbatim
+  // (chunked, since it can be arbitrarily long). This is the only path that uses `raw`.
+  if (!j) {
+    const parts = splitRaw(line, cfg.maxRawBytes)
+    return {
+      rows: parts.map((raw, i) => ({ ...base, chunk_idx: i, chunk_n: parts.length, raw })),
+      images,
+    }
+  }
+
+  // Store the line as a NESTED DOCUMENT, not a JSON string. InventDB indexes nested
+  // properties, so `message.usage.input_tokens` is a real queryable column —
+  // SUM/WHERE/GROUP BY all work on it. As a string blob none of that was reachable.
+  //
+  // The parsed line is spread first and the derived columns overlay it, so both the
+  // original field names (`type`, `timestamp`, `message`) and the normalised ones
+  // (`kind`, `ts`, `role`) are available. Where they overlap (`uuid`, `cwd`) the value
+  // is identical.
   return {
-    rows: parts.map((raw, i) => ({ ...base, chunk_idx: i, chunk_n: parts.length, raw })),
+    rows: [{ ...stripInlineBinaries(j), ...base, chunk_idx: 0, chunk_n: 1 }],
     images,
   }
 }

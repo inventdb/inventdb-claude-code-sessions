@@ -216,14 +216,21 @@ WHERE raw LIKE '%<symbol>%' GROUP BY session_id ORDER BY lines DESC;
 SELECT session_id, seq, attachments FROM <ns>.session_line
 WHERE attachments > 0 AND chunk_idx = 0;
 
+-- Token usage, computed in SQL
+SELECT session_id,
+       SUM(message.usage.input_tokens)            AS input_tokens,
+       SUM(message.usage.output_tokens)           AS output_tokens,
+       SUM(message.usage.cache_read_input_tokens) AS cache_read_tokens
+FROM <ns>.session_line GROUP BY session_id;
+
 -- Reconstruct a session in order
-SELECT seq, kind, role, raw FROM <ns>.session_line
+SELECT seq, kind, role, message FROM <ns>.session_line
 WHERE session_id = '<id>' ORDER BY seq;
 ```
 
-`raw` holds the original transcript line byte-exact, so `LIKE` over it searches
-everything — prompts, tool inputs, command output, pre-edit file contents. `LIKE` is
-case-insensitive. For fuzzy recall use the MCP `search` tool (BM25) or `MEANING()`.
+Each line is stored as a nested document, so the transcript's structure is queryable
+rather than trapped in a string. `LIKE` on a text field is case-insensitive. For fuzzy
+recall use the MCP `search` tool (BM25) or `MEANING()`.
 
 **Sorting rule.** Never add `ORDER BY` to a query whose only filter is a single `LIKE` —
 it returns a fraction of the matching rows, sometimes none, with no error. Sort
@@ -265,7 +272,8 @@ rows it returns, so any total derived that way is unreliable.
 | `source_file`, `agent_id`, `parent_session` | Provenance. Subagent and workflow transcripts embed their parent's session id, so the path is what distinguishes them. |
 | `attachments` | Count of inline binaries on that line |
 | `uuid`, `parent_uuid`, `request_id`, `is_sidechain`, `bytes`, `chunk_idx`, `chunk_n` | Identity, threading, size, chunking |
-| `raw` | The original line, byte-exact |
+| *(whole line)* | Stored as a **nested document** — every original field is a real column, so `message.usage.input_tokens`, `message.model`, `type` are queryable directly |
+| `raw` | Only present when a line failed to parse |
 
 `<ns>.session_event` — one row per lifecycle event: `session_id`, `event`, `ts`, `cwd`,
 `transcript_path`, `permission_mode`, `source`, `reason`, `host`.

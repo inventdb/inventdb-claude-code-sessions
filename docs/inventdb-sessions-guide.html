@@ -138,7 +138,8 @@ tools/claude-code-sessions/<br>
     <tr><td><code>source_file</code>, <code>agent_id</code>, <code>parent_session</code></td><td>Provenance. Subagent and workflow transcripts embed their <em>parent&rsquo;s</em> session id, so the file path is the only thing that distinguishes them.</td></tr>
     <tr><td><code>attachments</code></td><td>Count of inline binaries on that <strong>line</strong> (repeated on each chunk of a chunked line; files upload once, against <code>chunk_idx = 0</code>)</td></tr>
     <tr><td><code>uuid</code>, <code>parent_uuid</code>, <code>request_id</code>, <code>is_sidechain</code>, <code>bytes</code>, <code>chunk_idx</code>, <code>chunk_n</code></td><td>Identity, threading, size and chunking</td></tr>
-    <tr><td><code>raw</code></td><td>The original line, <strong>byte-exact</strong></td></tr>
+    <tr><td><em>(the whole transcript line)</em></td><td>Stored as a <strong>nested document</strong>, not a string &mdash; every original field is a real column, so <code>message.usage.input_tokens</code>, <code>message.model</code> and <code>type</code> are queryable with <code>SELECT</code>, <code>WHERE</code>, <code>SUM</code> and <code>GROUP BY</code></td></tr>
+    <tr><td><code>raw</code></td><td>Present <strong>only</strong> for a line that failed to parse, so nothing is ever dropped</td></tr>
   </tbody>
 </table>
 
@@ -270,8 +271,15 @@ WHERE raw LIKE '%&lt;filename&gt;%' AND raw LIKE '%old_string%' ORDER BY ts;
 SELECT session_id, seq, attachments FROM &lt;ns&gt;.session_line
 WHERE attachments &gt; 0 AND chunk_idx = 0;
 
+-- Token usage, computed in SQL
+SELECT session_id,
+       SUM(message.usage.input_tokens)            AS input_tokens,
+       SUM(message.usage.output_tokens)           AS output_tokens,
+       SUM(message.usage.cache_read_input_tokens) AS cache_read_tokens
+FROM &lt;ns&gt;.session_line GROUP BY session_id;
+
 -- Reconstruct a session in order
-SELECT seq, kind, role, raw FROM &lt;ns&gt;.session_line
+SELECT seq, kind, role, message FROM &lt;ns&gt;.session_line
 WHERE session_id = '&lt;id&gt;' ORDER BY seq;</code></pre>
 
 <p><code>raw</code> holds the original line byte-exact, so <code>LIKE</code> over it searches everything &mdash; prompts, tool inputs, command output, pre-edit file contents. <code>LIKE</code> is case-insensitive. For fuzzy recall use the MCP <code>search</code> tool (BM25) or <code>MEANING()</code> instead.</p>
