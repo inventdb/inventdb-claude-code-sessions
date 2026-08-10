@@ -11,8 +11,9 @@
  *
  * InventDB API contract (full reference: https://www.inventdb.com/api.html):
  *   POST /api/auth/login              -> { ok, token }        JWT, ~8h
- *   POST /api/{ns}/{type}/bulk        -> { ok, insertedCount, ids, error }
- *        body = bare array | { documents: [...] }; ns+type created lazily
+ *   POST /db/{ns}/{type}              -> { ok, id }
+ *        the body IS the document; ns+type created lazily. Supplying _id makes
+ *        the write idempotent, so a replay overwrites instead of duplicating.
  *
  * Invariant: this NEVER fails the hook. Every path exits 0. If InventDB is
  * unreachable the byte watermark is not advanced, so the next hook retries
@@ -257,48 +258,6 @@ async function postOne(cfg, type, row) {
   throw new Error(`insert failed after retries: ${last}`)
 }
 
-async function postBulk(cfg, type, rows) {
-  // No ?disableIndexing — InventDB always maintains indexes on write (that is what
-  // backs its consistency promise), so the param is inert. Writes pay full index cost.
-  const url = `${cfg.base}/api/${encodeURIComponent(cfg.namespace)}/${encodeURIComponent(type)}/bulk`
-  const body = JSON.stringify(rows)
-
-  let reauthed = false
-  let last = ''
-  // 5xx is retried with backoff: sustained write load can produce transient
-  // server errors that succeed on a later attempt.
-  for (let attempt = 0; attempt < 5; attempt++) {
-    if (attempt) await new Promise((r) => setTimeout(r, 500 * 2 ** (attempt - 1)))
-    let r
-    try {
-      const token = await getToken(cfg, reauthed)
-      r = await fetch(url, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
-        body,
-        signal: AbortSignal.timeout(cfg.requestTimeoutMs),
-      })
-    } catch (e) {
-      last = `network: ${e.message}` // timeout / connection reset -> retry
-      continue
-    }
-    if (r.status === 401 && !reauthed) {
-      reauthed = true // stale token -> re-login once, then retry
-      continue
-    }
-    const text = await r.text()
-    if (r.status >= 500) {
-      last = `HTTP ${r.status}: ${text.slice(0, 200)}`
-      continue
-    }
-    if (!r.ok) throw new Error(`bulk HTTP ${r.status}: ${text.slice(0, 300)}`)
-    if (attempt) log(`recovered after ${attempt} retr${attempt > 1 ? 'ies' : 'y'} (${last})`)
-    const j = JSON.parse(text)
-    if (j.error) log(`partial insert into ${type}: ${String(j.error).slice(0, 300)}`)
-    return { count: j.insertedCount ?? rows.length, ids: Array.isArray(j.ids) ? j.ids : [] }
-  }
-  throw new Error(`bulk failed after retries: ${last}`)
-}
 
 /* ── attachments ────────────────────────────────────────────────────── */
 
@@ -625,7 +584,7 @@ async function shipEvent(cfg, hook) {
     reason: hook.reason ?? null,
     host: os.hostname(),
   }
-  await postBulk(cfg, cfg.eventType, [row])
+  await postOne(cfg, cfg.eventType, row)
 }
 
 /* ── entry points ───────────────────────────────────────────────────── */
@@ -717,7 +676,7 @@ async function main() {
       bindState(verified)
       const t = await getToken(verified, true)
       process.stdout.write(
-        `auth ok (token ${t.length} chars)\ntarget ${verified.base}/api/${verified.namespace}/${verified.lineType}/bulk\n`,
+        `auth ok (token ${t.length} chars)\ntarget ${verified.base}/db/${verified.namespace}/${verified.lineType}\n`,
       )
     } catch (e) {
       process.stdout.write(`config saved, but VERIFICATION FAILED: ${e.message}\n`)
@@ -736,7 +695,7 @@ async function main() {
   if (argv.includes('--ping')) {
     const t = await getToken(cfg, true)
     process.stdout.write(`auth ok, token ${t.length} chars, exp ${new Date(jwtExp(t) * 1000).toISOString()}\n`)
-    process.stdout.write(`target ${cfg.base}/api/${cfg.namespace}/${cfg.lineType}/bulk\n`)
+    process.stdout.write(`target ${cfg.base}/db/${cfg.namespace}/${cfg.lineType}\n`)
     return
   }
 
