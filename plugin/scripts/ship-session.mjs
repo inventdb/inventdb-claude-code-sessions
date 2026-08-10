@@ -267,18 +267,26 @@ function inlineBinaries(node, out = [], depth = 0) {
   return out
 }
 
+/** Opaque fields dropped outright: no query value, and costly to store and index. */
+const DROP_KEYS = new Set([
+  // Thinking-block signatures — multi-KB base64 blobs. Every text property is vector
+  // embedded, so keeping these would spend embedding budget on cryptographic noise and
+  // pollute semantic search. Nothing can usefully query them.
+  'signature',
+])
+
 /**
- * Deep copy with every inline base64 payload replaced by a small descriptor.
- *
- * The bytes are uploaded as a real InventDB attachment, so keeping them inline as well
- * would store a screenshot twice and bloat every row that carries one. What stays is
- * the shape — media type and size — which is what a query would ask about anyway.
+ * Deep copy that makes a transcript line cheap to store and index:
+ *   - inline base64 payloads become a small descriptor (the bytes are uploaded as a
+ *     real attachment, so keeping them inline would store a screenshot twice)
+ *   - opaque keys in DROP_KEYS are removed entirely, so no property exists to index
  */
-function stripInlineBinaries(node, depth = 0) {
+function sanitizeLine(node, depth = 0) {
   if (node === null || typeof node !== 'object' || depth > 12) return node
-  if (Array.isArray(node)) return node.map((v) => stripInlineBinaries(v, depth + 1))
+  if (Array.isArray(node)) return node.map((v) => sanitizeLine(v, depth + 1))
   const out = {}
   for (const [k, v] of Object.entries(node)) {
+    if (DROP_KEYS.has(k)) continue
     if (
       k === 'source' &&
       v && typeof v === 'object' && !Array.isArray(v) &&
@@ -291,7 +299,7 @@ function stripInlineBinaries(node, depth = 0) {
         stored_as: 'attachment',
       }
     } else {
-      out[k] = stripInlineBinaries(v, depth + 1)
+      out[k] = sanitizeLine(v, depth + 1)
     }
   }
   return out
@@ -422,7 +430,7 @@ function rowsForLine(cfg, sessionId, line, seq, origin = {}) {
   // (`kind`, `ts`, `role`) are available. Where they overlap (`uuid`, `cwd`) the value
   // is identical.
   return {
-    rows: [{ ...stripInlineBinaries(j), ...base, chunk_idx: 0, chunk_n: 1 }],
+    rows: [{ ...sanitizeLine(j), ...base, chunk_idx: 0, chunk_n: 1 }],
     images,
   }
 }
