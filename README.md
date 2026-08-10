@@ -58,13 +58,16 @@ Two halves, deliberately on different transports.
 
 | Path | Mechanism | Why |
 |---|---|---|
-| **Write** | 5 async hooks → `ship-session.mjs` → REST `bulk` | Fidelity requires tailing the local `.jsonl`, which only a local process can do. A remote MCP tool cannot read the user's disk. |
+| **Write** | 5 async hooks → `ship-session.mjs` → one REST insert **per line** | Fidelity requires tailing the local `.jsonl`, which only a local process can do. A remote MCP tool cannot read the user's disk. |
 | **Read** | InventDB MCP server | Lets Claude query every past session mid-conversation — the useful question is semantic or aggregate, not a list of session UUIDs. |
 
-The shipper tails each transcript from a persisted **byte watermark** and bulk-inserts new
-lines. The watermark advances only after a successful write, so an interrupted or failed
-run resumes at the exact byte — no gaps, no duplicates. Re-running a fully-synced
-transcript inserts 0 rows.
+The shipper tails each transcript from a persisted **byte watermark** and inserts **one
+record per line**, advancing the watermark after each one. A failure therefore costs a
+single line rather than a whole batch, and the resume point is exact.
+
+Every row carries a **deterministic `_id`** derived from the transcript and the line's
+position, so re-sending a line overwrites it in place. The import is replay-safe: running
+it twice over the same transcript leaves the same number of rows, not double.
 
 ```
 inventdb-claude-code-sessions/

@@ -22,6 +22,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
+import { createHash } from 'node:crypto'
 import { fileURLToPath } from 'node:url'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -200,6 +201,61 @@ async function getToken(cfg, force = false) {
 }
 
 /* ── write path ─────────────────────────────────────────────────────── */
+
+/**
+ * Stable row id for one transcript line.
+ *
+ * Derived from the transcript path plus the line's position, so the SAME line always
+ * maps to the SAME id. Re-running an import therefore overwrites rather than
+ * duplicating — without this, replayed batches left single lines stored dozens of
+ * times over, and any total computed from the archive was inflated.
+ */
+function lineId(sourceKey, seq, chunkIdx = 0) {
+  const h = createHash('sha1').update(`${sourceKey}|${seq}|${chunkIdx}`).digest('hex')
+  return `ln_${h.slice(0, 32)}`
+}
+
+/**
+ * Insert ONE record. Retries 5xx/network with backoff, exactly like the bulk path.
+ *
+ * Returns true when the row is durable. Throws only after retries are exhausted, so
+ * the caller can stop without advancing the watermark past a line that never landed.
+ */
+async function postOne(cfg, type, row) {
+  const url = `${cfg.base}/db/${encodeURIComponent(cfg.namespace)}/${encodeURIComponent(type)}`
+  const body = JSON.stringify(row)
+  let reauthed = false
+  let last = ''
+  for (let attempt = 0; attempt < 5; attempt++) {
+    if (attempt) await new Promise((r) => setTimeout(r, 500 * 2 ** (attempt - 1)))
+    let r
+    try {
+      const token = await getToken(cfg, reauthed)
+      r = await fetch(url, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
+        body,
+        signal: AbortSignal.timeout(cfg.requestTimeoutMs),
+      })
+    } catch (e) {
+      last = `network: ${e.message}`
+      continue
+    }
+    if (r.status === 401 && !reauthed) {
+      reauthed = true
+      continue
+    }
+    const text = await r.text()
+    if (r.status >= 500) {
+      last = `HTTP ${r.status}: ${text.slice(0, 160)}`
+      continue
+    }
+    if (!r.ok) throw new Error(`insert HTTP ${r.status}: ${text.slice(0, 200)}`)
+    if (attempt) log(`recovered after ${attempt} retr${attempt > 1 ? 'ies' : 'y'} (${last})`)
+    return true
+  }
+  throw new Error(`insert failed after retries: ${last}`)
+}
 
 async function postBulk(cfg, type, rows) {
   // No ?disableIndexing — InventDB always maintains indexes on write (that is what
@@ -509,64 +565,43 @@ async function syncTranscript(cfg, sessionId, tpath, budgetMs, origin = {}, stat
     const lines = consumable.toString('utf8').split('\n')
     if (lines[lines.length - 1] === '') lines.pop()
 
-    // Ship in batches; advance the watermark only by what actually landed, so
-    // a mid-window failure resumes exactly at the first unshipped line.
-    let pending = []
-    let pendingAtt = [] // { row: index into pending, images, label }
-    let pendingRowBytes = 0
-    let pendingSrcBytes = 0
-
-    const flush = async () => {
-      if (!pending.length) return
-      const res = await postBulk(cfg, cfg.lineType, pending)
-      shipped += res.count
-      // Watermark first: the rows are durable now. Attachment upload is best-effort
-      // and must not be able to force a replay that would duplicate them.
-      st.offset += pendingSrcBytes
-      saveState(stateKey, st)
-
-      for (const a of pendingAtt) {
-        const id = res.ids[a.row]
-        if (!id) {
-          log(`no record id for ${a.label}; ${a.images.length} attachment(s) not uploaded`)
-          continue
-        }
-        for (let i = 0; i < a.images.length; i++) {
-          await uploadAttachment(cfg, id, a.images[i], `${a.label}-${i}`)
-        }
-      }
-
-      pending = []
-      pendingAtt = []
-      pendingRowBytes = 0
-      pendingSrcBytes = 0
-    }
-
+    // ONE LINE PER REQUEST, and the watermark advances after each one.
+    //
+    // Batching lost whole windows: a single rejected payload discarded every line in
+    // the batch, and because the watermark moved per batch the biggest transcripts
+    // never landed at all while the run still reported them "done". Per line, a
+    // failure costs exactly that line, and the resume point is exact.
+    //
+    // Each row carries a deterministic _id, so re-sending a line overwrites it in
+    // place instead of creating another copy — the import is replay-safe.
     for (const line of lines) {
       const srcBytes = Buffer.byteLength(line, 'utf8') + 1 // + the \n we consumed
       if (!line.trim()) {
         // Blank line: nothing to ship, but its bytes must still be accounted.
-        pendingSrcBytes += srcBytes
+        st.offset += srcBytes
+        saveState(stateKey, st)
         continue
       }
-      const { rows, images } = rowsForLine(cfg, sessionId, line, st.seq, origin)
-      const rowBytes = Buffer.byteLength(line, 'utf8') + 400 * rows.length
 
-      const wouldOverflow =
-        pending.length &&
-        (pending.length + rows.length > cfg.batchRows || pendingRowBytes + rowBytes > cfg.batchBytes)
-      if (wouldOverflow) await flush()
+      const { rows, images } = rowsForLine(cfg, sessionId, line, st.seq, origin)
+      const ids = []
+      for (const row of rows) {
+        const id = lineId(origin.source_file || sessionId, st.seq, row.chunk_idx)
+        await postOne(cfg, cfg.lineType, { ...row, _id: id })
+        ids.push(id)
+        shipped += 1
+      }
 
       // Attach to the FIRST chunk only, so a split line does not upload N copies.
-      if (images.length) {
-        pendingAtt.push({ row: pending.length, images, label: `${sessionId}-${st.seq}` })
+      // The id is known up front now, so no lookup is needed.
+      for (let i = 0; i < images.length; i++) {
+        await uploadAttachment(cfg, ids[0], images[i], `${sessionId}-${st.seq}-${i}`)
       }
+
       st.seq += 1
-      pending.push(...rows)
-      pendingRowBytes += rowBytes
-      pendingSrcBytes += srcBytes
+      st.offset += srcBytes
+      saveState(stateKey, st)
     }
-    await flush()
 
     if (Date.now() - started > budgetMs) {
       log(`budget hit for ${sessionId}; ${stat.size - st.offset} bytes still pending`)

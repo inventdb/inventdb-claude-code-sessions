@@ -181,8 +181,9 @@ and `…/workflows/…`, so a one-level scan misses most files.
 
 ### 3.3 What to expect
 
-- **Failures are safe.** The watermark advances only after a successful write, so a
-  failed file resumes at the exact byte. Re-running a synced transcript ships 0 rows.
+- **Failures are safe and cheap.** One record is inserted per line and the watermark
+  advances per line, so a failure costs that line only — never a whole batch. Rows carry a
+  deterministic `_id`, so re-sending overwrites in place and a replay cannot duplicate.
 - **Transient 5xx under sustained load is expected** and retried with backoff. Do not
   investigate these as content problems — re-send the same batch first; if it succeeds,
   it was load rather than the data.
