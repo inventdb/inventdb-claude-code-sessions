@@ -130,6 +130,9 @@ function loadConfig() {
     maxRawBytes: c.maxRawBytes || 200_000,
     readWindowBytes: c.readWindowBytes || 8_000_000,
     maxLineBytes: c.maxLineBytes || 67_108_864,
+    // 'bulk' batches rows into one request (fast); 'line' sends one per request and
+    // advances the watermark per line (slower, but a failure costs a single line).
+    insertMode: c.insertMode === 'line' ? 'line' : 'bulk',
     hookBudgetMs: c.hookBudgetMs || 20_000,
     requestTimeoutMs: c.requestTimeoutMs || 180_000,
     // Pasted screenshots and other inline base64 payloads are uploaded as real
@@ -217,6 +220,53 @@ function lineId(sourceKey, seq, chunkIdx = 0) {
 }
 
 /**
+ * Insert a BATCH of records in one request.
+ *
+ * Safe to retry because every row carries a deterministic _id: a batch that partially
+ * applied and then failed re-applies as an overwrite, not a second copy. Without that
+ * id an interrupted batch left duplicates, which is what made earlier imports
+ * over-count. The watermark still advances per batch, so a batch that never succeeds
+ * is simply replayed from the same offset.
+ */
+async function postBulk(cfg, type, rows) {
+  const url = `${cfg.base}/api/${encodeURIComponent(cfg.namespace)}/${encodeURIComponent(type)}/bulk`
+  const body = JSON.stringify(rows)
+  let reauthed = false
+  let last = ''
+  for (let attempt = 0; attempt < 5; attempt++) {
+    if (attempt) await new Promise((r) => setTimeout(r, 500 * 2 ** (attempt - 1)))
+    let r
+    try {
+      const token = await getToken(cfg, reauthed)
+      r = await fetch(url, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
+        body,
+        signal: AbortSignal.timeout(cfg.requestTimeoutMs),
+      })
+    } catch (e) {
+      last = `network: ${e.message}`
+      continue
+    }
+    if (r.status === 401 && !reauthed) {
+      reauthed = true
+      continue
+    }
+    const text = await r.text()
+    if (r.status >= 500) {
+      last = `HTTP ${r.status}: ${text.slice(0, 160)}`
+      continue
+    }
+    if (!r.ok) throw new Error(`bulk HTTP ${r.status}: ${text.slice(0, 200)}`)
+    if (attempt) log(`recovered after ${attempt} retr${attempt > 1 ? 'ies' : 'y'} (${last})`)
+    const j = JSON.parse(text)
+    if (j.error) log(`partial insert into ${type}: ${String(j.error).slice(0, 200)}`)
+    return j.insertedCount ?? rows.length
+  }
+  throw new Error(`bulk failed after retries: ${last}`)
+}
+
+/**
  * Insert ONE record. Retries 5xx/network with backoff, exactly like the bulk path.
  *
  * Returns true when the row is durable. Throws only after retries are exhausted, so
@@ -289,6 +339,155 @@ const DROP_KEYS = new Set([
   // pollute semantic search. Nothing can usefully query them.
   'signature',
 ])
+
+/* ── declared line schema ───────────────────────────────────────────────
+ *
+ * A transcript line is stored as TWO things: a small set of DECLARED nested
+ * properties, and the rest as opaque JSON text.
+ *
+ * Why: the store indexes one property per distinct JSON path, and Claude Code
+ * transcripts routinely put DATA in key positions —
+ * `snapshot.trackedFileBackups.<full file path>`, `toolUseResult.answers.<the
+ * whole question>`, `message.content.0.input.<whatever a tool invented>`. Left
+ * to expand, the property set grows with the corpus and never converges:
+ * measured 18,510 distinct properties from 51,453 lines, 52% of them seen
+ * exactly once. Declaring the schema instead holds it at ~128 across 26x more
+ * data.
+ *
+ * Bump SCHEMA_VERSION whenever these lists change; it is written onto every row
+ * as `schema_v`, so a mixed archive stays interpretable and can be re-imported
+ * selectively. Claude Code's transcript format moves — expect to edit these.
+ */
+const SCHEMA_VERSION = 2
+
+/**
+ * Kept as real nested properties. Every entry must be BOUNDED: its key names
+ * come from Claude Code's own schema, never from user data or tool output.
+ */
+const INDEXED_PATHS = new Set([
+  'message.usage',        // whole subtree: all token accounting, fixed key names
+  'compactMetadata',      // compaction bookkeeping, fixed key names
+  'error',                // API error envelope, fixed key names
+  'backup',               // backup descriptor, fixed key names
+  'origin',
+])
+
+/**
+ * Stored as JSON TEXT — one property each, never exploded into paths.
+ * These are the unbounded ones: tool inputs/outputs, file snapshots, content
+ * blocks. Still fully stored, still reachable by full-text/vector search.
+ */
+const OPAQUE_PATHS = new Set([
+  'message.content',
+  'toolUseResult',
+  'result',
+  'snapshot',
+  'attachment',
+  'edits',
+  'hookInfos',
+  'answers',
+  'toolUseResults',
+  'content',
+])
+
+/**
+ * Dot-paths lifted OUT of opaque payloads into a generic `attrs` array of
+ * {k, v}. This costs exactly TWO properties (`attrs.k`, `attrs.v`) no matter
+ * how many distinct paths are listed, which is the whole point — query with
+ *   WHERE attrs.k = 'message.content.type' AND attrs.v = 'text'
+ * instead of minting a property per path.
+ */
+const ATTR_PATHS = [
+  'message.content.type',
+  'message.content.name',
+  'toolUseResult.type',
+  'toolUseResult.filePath',
+  'toolUseResult.structuredPatch.file',
+  'result.type',
+]
+
+const MAX_ATTRS = 64          // a pathological line must not produce thousands
+const MAX_OPAQUE_BYTES = 200_000
+
+/**
+ * Ancestors of any declared path. `message.usage` is indexed, so `message`
+ * itself must stay walkable rather than being opaqued on the way down —
+ * otherwise the token-accounting columns disappear.
+ */
+const WALK_PREFIXES = new Set()
+for (const p of [...INDEXED_PATHS, ...OPAQUE_PATHS]) {
+  const parts = p.split('.')
+  for (let i = 1; i < parts.length; i++) WALK_PREFIXES.add(parts.slice(0, i).join('.'))
+}
+
+/** Serialise an undeclared/opaque subtree to text, bounded in size. */
+function opaqueText(v) {
+  let s
+  try {
+    s = JSON.stringify(v)
+  } catch {
+    return null
+  }
+  if (s == null) return null
+  return Buffer.byteLength(s, 'utf8') > MAX_OPAQUE_BYTES
+    ? s.slice(0, MAX_OPAQUE_BYTES) + '…[truncated]'
+    : s
+}
+
+/** Walk a declared dot-path, descending through arrays, collecting scalars. */
+function pluck(node, parts, out, depth = 0) {
+  if (node == null || out.length >= MAX_ATTRS || depth > 14) return
+  if (Array.isArray(node)) {
+    for (const v of node) pluck(v, parts, out, depth + 1)
+    return
+  }
+  if (!parts.length) {
+    if (node !== null && typeof node !== 'object') out.push(node)
+    return
+  }
+  if (typeof node !== 'object') return
+  pluck(node[parts[0]], parts.slice(1), out, depth + 1)
+}
+
+/** Generic {k,v} index over declared payload paths — two properties, any depth. */
+function collectAttrs(j) {
+  const attrs = []
+  for (const p of ATTR_PATHS) {
+    const vals = []
+    pluck(j, p.split('.'), vals)
+    for (const v of vals) {
+      if (attrs.length >= MAX_ATTRS) return attrs
+      attrs.push({ k: p, v: String(v).slice(0, 512) })
+    }
+  }
+  return attrs
+}
+
+/**
+ * Project a parsed line onto the declared schema.
+ *   - scalars are always kept (cheap, and their key names are bounded)
+ *   - a path in INDEXED_PATHS keeps its nested structure
+ *   - a path in OPAQUE_PATHS becomes JSON text
+ *   - ANY OTHER object/array becomes JSON text too, so a format change upstream
+ *     can never silently reintroduce unbounded property growth
+ */
+function projectLine(v, p = '', depth = 0) {
+  if (v === null || typeof v !== 'object') return v
+  if (depth > 12) return opaqueText(v)
+  if (p && OPAQUE_PATHS.has(p)) return opaqueText(v)
+  if (p && INDEXED_PATHS.has(p)) return sanitizeLine(v, depth)
+  if (Array.isArray(v)) return opaqueText(v)
+  // Walk the root, and any ancestor of a declared path. Everything else is an
+  // undeclared object: opaque, so an upstream format change cannot silently
+  // reintroduce unbounded property growth.
+  if (p && !WALK_PREFIXES.has(p)) return opaqueText(v)
+  const out = {}
+  for (const [k, val] of Object.entries(v)) {
+    if (DROP_KEYS.has(k)) continue
+    out[k] = projectLine(val, p ? `${p}.${k}` : k, depth + 1)
+  }
+  return out
+}
 
 /**
  * Deep copy that makes a transcript line cheap to store and index:
@@ -436,16 +635,20 @@ function rowsForLine(cfg, sessionId, line, seq, origin = {}) {
     }
   }
 
-  // Store the line as a NESTED DOCUMENT, not a JSON string. InventDB indexes nested
-  // properties, so `message.usage.input_tokens` is a real queryable column —
-  // SUM/WHERE/GROUP BY all work on it. As a string blob none of that was reachable.
+  // Store the line against the DECLARED SCHEMA (see SCHEMA_VERSION above): stable
+  // subtrees stay nested and queryable (`message.usage.input_tokens` is a real
+  // column — SUM/WHERE/GROUP BY all work), while unbounded payloads are kept as
+  // JSON text so they cannot mint one index property per distinct path.
   //
-  // The parsed line is spread first and the derived columns overlay it, so both the
-  // original field names (`type`, `timestamp`, `message`) and the normalised ones
-  // (`kind`, `ts`, `role`) are available. Where they overlap (`uuid`, `cwd`) the value
-  // is identical.
+  // The projected line is spread first and the derived columns overlay it, so both
+  // the original field names (`type`, `timestamp`, `message`) and the normalised
+  // ones (`kind`, `ts`, `role`) are available. Where they overlap (`uuid`, `cwd`)
+  // the value is identical.
+  base.schema_v = SCHEMA_VERSION
+  const attrs = collectAttrs(j)
+  if (attrs.length) base.attrs = attrs
   return {
-    rows: [{ ...sanitizeLine(j), ...base, chunk_idx: 0, chunk_n: 1 }],
+    rows: [{ ...projectLine(j), ...base, chunk_idx: 0, chunk_n: 1 }],
     images,
   }
 }
@@ -533,34 +736,68 @@ async function syncTranscript(cfg, sessionId, tpath, budgetMs, origin = {}, stat
     //
     // Each row carries a deterministic _id, so re-sending a line overwrites it in
     // place instead of creating another copy — the import is replay-safe.
+    let pending = []      // rows awaiting a bulk write
+    let pendingAtt = []   // { id, images, label } — uploaded after the batch commits
+    let pendingBytes = 0  // source bytes the batch covers
+    let pendingRowBytes = 0
+
+    const flush = async () => {
+      if (!pending.length) return
+      if (cfg.insertMode === 'line') {
+        for (const row of pending) await postOne(cfg, cfg.lineType, row)
+      } else {
+        await postBulk(cfg, cfg.lineType, pending)
+      }
+      shipped += pending.length
+      st.offset += pendingBytes
+      saveState(stateKey, st)
+
+      // Rows are durable; attachments are best-effort and must not force a replay.
+      for (const a of pendingAtt) {
+        for (let i = 0; i < a.images.length; i++) {
+          await uploadAttachment(cfg, a.id, a.images[i], `${a.label}-${i}`)
+        }
+      }
+      pending = []
+      pendingAtt = []
+      pendingBytes = 0
+      pendingRowBytes = 0
+    }
+
     for (const line of lines) {
       const srcBytes = Buffer.byteLength(line, 'utf8') + 1 // + the \n we consumed
       if (!line.trim()) {
-        // Blank line: nothing to ship, but its bytes must still be accounted.
-        st.offset += srcBytes
-        saveState(stateKey, st)
+        pendingBytes += srcBytes // blank line ships nothing but must be accounted
         continue
       }
 
       const { rows, images } = rowsForLine(cfg, sessionId, line, st.seq, origin)
-      const ids = []
-      for (const row of rows) {
-        const id = lineId(origin.source_file || sessionId, st.seq, row.chunk_idx)
-        await postOne(cfg, cfg.lineType, { ...row, _id: id })
-        ids.push(id)
-        shipped += 1
+      const withIds = rows.map((row) => ({
+        ...row,
+        _id: lineId(origin.source_file || sessionId, st.seq, row.chunk_idx),
+      }))
+      const rowBytes = Buffer.byteLength(line, 'utf8') + 400 * withIds.length
+
+      // Flush before the batch would exceed either cap, so one oversized line cannot
+      // silently build a payload the server will reject.
+      if (
+        pending.length &&
+        (pending.length + withIds.length > cfg.batchRows ||
+          pendingRowBytes + rowBytes > cfg.batchBytes)
+      ) {
+        await flush()
       }
 
       // Attach to the FIRST chunk only, so a split line does not upload N copies.
-      // The id is known up front now, so no lookup is needed.
-      for (let i = 0; i < images.length; i++) {
-        await uploadAttachment(cfg, ids[0], images[i], `${sessionId}-${st.seq}-${i}`)
+      if (images.length) {
+        pendingAtt.push({ id: withIds[0]._id, images, label: `${sessionId}-${st.seq}` })
       }
-
       st.seq += 1
-      st.offset += srcBytes
-      saveState(stateKey, st)
+      pending.push(...withIds)
+      pendingBytes += srcBytes
+      pendingRowBytes += rowBytes
     }
+    await flush()
 
     if (Date.now() - started > budgetMs) {
       log(`budget hit for ${sessionId}; ${stat.size - st.offset} bytes still pending`)
