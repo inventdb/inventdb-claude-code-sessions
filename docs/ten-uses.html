@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InventDB &mdash; Ten things a Claude Code session archive is for</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #fafafa; color: #1a1a1a; line-height: 1.65; padding: 40px 24px; }
+  .container { max-width: 940px; margin: 0 auto; }
+  h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px; }
+  .subtitle { color: #666; font-size: 1rem; margin-bottom: 8px; }
+  .meta-line { font-size: 0.8rem; color: #999; margin-bottom: 28px; font-family: ui-monospace, monospace; }
+  h2 { font-size: 1.32rem; font-weight: 600; margin-top: 42px; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 2px solid #48176a; }
+  h3 { font-size: 1.06rem; font-weight: 600; margin-top: 26px; margin-bottom: 8px; color: #2a1240; }
+  h4 { font-size: 0.95rem; font-weight: 600; margin-top: 18px; margin-bottom: 6px; color: #333; }
+  p { margin-bottom: 12px; font-size: 0.95rem; }
+  ul, ol { margin-left: 22px; margin-bottom: 14px; }
+  li { padding: 3px 0; font-size: 0.95rem; }
+  code { font-family: ui-monospace, 'JetBrains Mono', Consolas, monospace; background: #efe9f3; padding: 2px 6px; border-radius: 4px; font-size: 0.86rem; }
+  pre { background: #1e1230; color: #ede7f6; padding: 14px 16px; border-radius: 8px; overflow-x: auto; font-size: 0.83rem; line-height: 1.55; margin: 10px 0; }
+  pre code { background: transparent; color: inherit; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #e5e5e5; vertical-align: top; }
+  th { background: #f1edf5; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: #555; }
+  td.num { text-align: right; font-family: ui-monospace, monospace; font-size: 0.85rem; white-space: nowrap; }
+  th.num { text-align: right; }
+  td.mono, code.path { font-family: ui-monospace, monospace; font-size: 0.82rem; }
+  .box { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 18px 22px; margin: 14px 0; }
+  .box-warn { background: #fffbeb; border-color: #fbbf24; }
+  .box-key { background: #f3ecfa; border-color: #9333ea; border-left: 4px solid #9333ea; }
+  .box h4, .box-key h4 { font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.07em; color: #48176a; margin-bottom: 8px; margin-top: 0; }
+  .footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid #e5e5e5; font-size: 0.82rem; color: #888; }
+  a { color: #48176a; }
+  .toc { background:#fff; border:1px solid #e5e5e5; border-radius:10px; padding:14px 20px; margin:8px 0 10px; columns:2; column-gap:34px; }
+  .toc a { display:block; padding:3px 0; font-size:0.88rem; text-decoration:none; color:#2a1240; break-inside:avoid; }
+  .small { font-size:0.85rem; color:#666; }
+  .lede { font-size: 1.06rem; line-height: 1.6; color: #2a2a2a; margin-bottom: 16px; }
+  .rank { display:inline-block; min-width:1.9em; color:#9333ea; font-variant-numeric: tabular-nums; }
+  .answers { font-size:0.9rem; color:#555; font-style:italic; margin-bottom:10px; }
+  .stat-row { display:flex; flex-wrap:wrap; gap:12px; margin:16px 0; }
+  .stat { flex:1 1 160px; background:#fff; border:1px solid #e5e5e5; border-radius:8px; padding:12px 16px; }
+  .stat .v { font-size:1.35rem; font-weight:700; letter-spacing:-0.02em; color:#2a1240; font-variant-numeric: tabular-nums; }
+  .stat .l { font-size:0.76rem; text-transform:uppercase; letter-spacing:0.06em; color:#777; margin-top:2px; }
+  .verdict { background:#f5f0fb; border-left:3px solid #c8a8e0; padding:10px 16px; margin:12px 0 0; font-size:0.9rem; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Ten things a session archive is for</h1>
+<p class="subtitle">What developers, teams and engineering organisations actually get from mirroring Claude Code sessions into InventDB &mdash; each one demonstrated with a query and a measured result.</p>
+<p class="meta-line">docs/ten-uses.html &middot; August 2026 &middot; plugin v0.1.0</p>
+
+<div class="box box-key">
+<h4>The premise</h4>
+<p style="margin-bottom:0;">A session log is not a chat transcript. It is an <strong>execution record</strong>: every command with its output, every file&rsquo;s pre-edit state, every approach that was tried and abandoned, and the token cost of all of it. It is the only engineering artifact that contains the work which <em>failed</em> &mdash; everything else in the toolchain is a record of success, written by the winner. Claude Code removes it on a retention timer, 30 days by default. The ten uses below are what you get for keeping it instead.</p>
+</div>
+
+<h2 id="archive">The archive these numbers come from</h2>
+
+<p class="lede">Every figure on this page is a live query against a real archive &mdash; not an estimate, not a projection.</p>
+
+<div class="stat-row">
+  <div class="stat"><div class="v">406,745</div><div class="l">transcript rows</div></div>
+  <div class="stat"><div class="v">36</div><div class="l">sessions</div></div>
+  <div class="stat"><div class="v">3 months</div><div class="l">May&ndash;Aug 2026</div></div>
+  <div class="stat"><div class="v">32</div><div class="l">git branches</div></div>
+  <div class="stat"><div class="v">82</div><div class="l">working directories</div></div>
+</div>
+
+<p>That is <strong>one developer&rsquo;s machine</strong>. An engineering organisation multiplies every number below by its headcount, and gains the cross-developer joins that a single archive cannot offer.</p>
+
+<div class="box box-warn">
+<h4>Redaction notice</h4>
+<p style="margin-bottom:0;">Aggregates, counts and token totals on this page are reproduced exactly as measured. Identifiers &mdash; branch names, directory paths, file names, symbols and session titles &mdash; are redacted or replaced with placeholders such as <code>&lt;error text&gt;</code> and <code>&lt;filename&gt;</code>. The shape of every query is real; only the nouns are removed.</p>
+</div>
+
+<div class="toc">
+  <a href="#u1">1 &middot; AI spend attribution</a>
+  <a href="#u2">2 &middot; Cross-team recall</a>
+  <a href="#u3">3 &middot; Incident forensics</a>
+  <a href="#u4">4 &middot; Effort &amp; delivery ledger</a>
+  <a href="#u5">5 &middot; Audit trail for AI-authored code</a>
+  <a href="#u6">6 &middot; Onboarding &amp; expertise routing</a>
+  <a href="#u7">7 &middot; Tool &amp; command inventory</a>
+  <a href="#u8">8 &middot; Session revival &amp; handoff</a>
+  <a href="#u9">9 &middot; Harness quality engineering</a>
+  <a href="#u10">10 &middot; Mining sessions into artifacts</a>
+  <a href="#howto">Reproducing these on your own archive</a>
+</div>
+
+<h2 id="u1"><span class="rank">1</span> AI spend attribution</h2>
+<p class="answers">&ldquo;What is our agent spend, and which piece of work incurred it?&rdquo;</p>
+
+<p>Every assistant line carries its own usage block, stored as a nested document rather than a string &mdash; so token accounting is a <code>SUM</code>, not a parsing exercise.</p>
+
+<pre><code>SELECT SUM(message.usage.input_tokens)               AS input_tokens,
+       SUM(message.usage.output_tokens)              AS output_tokens,
+       SUM(message.usage.cache_read_input_tokens)    AS cache_read,
+       SUM(message.usage.cache_creation_input_tokens) AS cache_write
+FROM &lt;ns&gt;.session_line;</code></pre>
+
+<table>
+  <thead><tr><th>Measure</th><th class="num">Tokens, 3 months</th></tr></thead>
+  <tbody>
+    <tr><td>Uncached input</td><td class="num">15,151,638</td></tr>
+    <tr><td>Output</td><td class="num">294,180,047</td></tr>
+    <tr><td><strong>Cache read</strong></td><td class="num"><strong>103,674,287,245</strong></td></tr>
+    <tr><td>Cache write</td><td class="num">1,265,627,648</td></tr>
+  </tbody>
+</table>
+
+<p>Cache reads are <strong>103.7 billion tokens</strong> &mdash; roughly <strong>6,800&times;</strong> the uncached input, and <strong>82&times;</strong> the cache writes that created them. No vendor dashboard surfaces that ratio, and it is the single largest lever on the bill. Multiply each column by your rate card and the query is a finance report.</p>
+
+<p>The same aggregate splits by branch, which turns an unallocatable line item into per-feature cost accounting:</p>
+
+<pre><code>SELECT git_branch, COUNT(*) AS lines,
+       SUM(message.usage.cache_read_input_tokens) AS cache_read
+FROM &lt;ns&gt;.session_line
+WHERE git_branch IS NOT NULL
+GROUP BY git_branch ORDER BY cache_read DESC;</code></pre>
+
+<table>
+  <thead><tr><th>Branch <span class="small">(names redacted)</span></th><th class="num">Lines</th><th class="num">Cache read</th></tr></thead>
+  <tbody>
+    <tr><td><code>main</code></td><td class="num">269,493</td><td class="num">75.78 B</td></tr>
+    <tr><td>correctness fix branch</td><td class="num">11,492</td><td class="num">3.36 B</td></tr>
+    <tr><td>performance branch A</td><td class="num">5,874</td><td class="num">1.62 B</td></tr>
+    <tr><td>performance branch B</td><td class="num">4,188</td><td class="num">1.40 B</td></tr>
+    <tr><td class="small" colspan="3">&hellip; 28 further branches</td></tr>
+  </tbody>
+</table>
+
+<p>Swap <code>git_branch</code> for <code>cwd</code> to bill by project, or for <code>model</code> to see the mix:</p>
+
+<table>
+  <thead><tr><th>Model</th><th class="num">Assistant lines</th></tr></thead>
+  <tbody>
+    <tr><td><code>claude-opus-4-8</code></td><td class="num">97,667</td></tr>
+    <tr><td><code>claude-opus-5</code></td><td class="num">50,267</td></tr>
+    <tr><td><code>claude-opus-4-7</code></td><td class="num">22,650</td></tr>
+    <tr><td><code>claude-haiku-4-5</code></td><td class="num">9,331</td></tr>
+    <tr><td><code>claude-fable-5</code></td><td class="num">8,276</td></tr>
+  </tbody>
+</table>
+
+<div class="verdict"><strong>Why it ranks first.</strong> It is immediate, it needs no adoption ceremony, and the finance question &mdash; <em>what did agent-assisted engineering cost, by team and by feature</em> &mdash; currently has no other answer at all.</div>
+
+<h2 id="u2"><span class="rank">2</span> Cross-team recall</h2>
+<p class="answers">&ldquo;Has anyone already hit this? What did we try that failed?&rdquo;</p>
+
+<p>The archive keeps the dead ends, not just the commit that survived. Without it, the second developer to hit an error pays the full cost of the first one&rsquo;s investigation.</p>
+
+<pre><code>SELECT session_id, ts, git_branch, cwd
+FROM &lt;ns&gt;.session_line
+WHERE message.content LIKE '%&lt;error text&gt;%';</code></pre>
+
+<p>In this archive, a search for one compiler error class returns <strong>239 lines</strong> &mdash; every occurrence, with the diagnosis and the fix that followed it in the same session. A search for a single internal function name returns hits in <strong>3 distinct sessions</strong> (52, 13 and 2 lines respectively), immediately separating the session that did the real work from the two that brushed past it.</p>
+
+<div class="box">
+<h4>Two query rules worth knowing</h4>
+<ul style="margin-bottom:0;">
+<li><strong>Search <code>message.content</code>, not <code>raw</code>.</strong> Each line is stored as a nested document, so its structure is queryable. <code>raw</code> is populated only for lines that failed to parse &mdash; searching it will silently return nothing.</li>
+<li><strong>Do not add <code>ORDER BY</code> to a query whose only filter is a single <code>LIKE</code>.</strong> Sort client-side, or add a second predicate. <code>ORDER BY</code> is safe alongside equality filters, <code>IS NOT NULL</code>, <code>GROUP BY</code>, or two or more <code>LIKE</code> terms.</li>
+</ul>
+</div>
+
+<h2 id="u3"><span class="rank">3</span> Incident forensics</h2>
+<p class="answers">&ldquo;This broke last Tuesday. What actually changed, and what convinced us it worked?&rdquo;</p>
+
+<p>Claude Code snapshots a file&rsquo;s state before it edits it, and those snapshots are mirrored with everything else. In this archive:</p>
+
+<table>
+  <thead><tr><th>Line kind</th><th class="num">Rows</th><th>What it gives you</th></tr></thead>
+  <tbody>
+    <tr><td><code>file-history-snapshot</code></td><td class="num">5,379</td><td>Full pre-edit file state</td></tr>
+    <tr><td><code>file-history-delta</code></td><td class="num">1,474</td><td>Incremental change records</td></tr>
+  </tbody>
+</table>
+
+<p>That means a file&rsquo;s prior contents are recoverable <strong>even when the change was never committed</strong>, was squashed away, or was reverted before anyone looked at it. The edits themselves are equally reachable &mdash; a two-predicate search for edits touching one source file returns <strong>72 lines</strong>, each holding the exact before and after text:</p>
+
+<pre><code>SELECT ts, session_id, message
+FROM &lt;ns&gt;.session_line
+WHERE message.content LIKE '%&lt;filename&gt;%'
+  AND message.content LIKE '%old_string%'
+ORDER BY ts;</code></pre>
+
+<p>And critically, the command output that was taken as proof is stored beside the change. A green test run that was actually a stale binary, a benchmark that measured the wrong build &mdash; the archive shows what was believed, not just what was done.</p>
+
+<h2 id="u4"><span class="rank">4</span> Effort and delivery ledger</h2>
+<p class="answers">&ldquo;Where did the engineering effort actually go last quarter?&rdquo;</p>
+
+<p>Measured, not self-reported, and requiring no timesheet. The line-kind breakdown alone is a profile of how the work was done:</p>
+
+<table>
+  <thead><tr><th>Kind</th><th class="num">Rows</th><th>Kind</th><th class="num">Rows</th></tr></thead>
+  <tbody>
+    <tr><td><code>assistant</code></td><td class="num">217,929</td><td><code>attachment</code></td><td class="num">22,863</td></tr>
+    <tr><td><code>user</code></td><td class="num">112,390</td><td><code>mode</code></td><td class="num">21,522</td></tr>
+    <tr><td><code>queue-operation</code></td><td class="num">32,216</td><td><code>file-history-snapshot</code></td><td class="num">5,379</td></tr>
+    <tr><td><code>ai-title</code></td><td class="num">26,492</td><td><code>file-history-delta</code></td><td class="num">1,474</td></tr>
+    <tr><td><code>last-prompt</code></td><td class="num">26,346</td><td><code>pr-link</code></td><td class="num">877</td></tr>
+  </tbody>
+</table>
+
+<p>Grouping by <code>cwd</code> distributes that effort across projects. Across <strong>82 distinct working directories</strong>, the split is steeply concentrated &mdash; the top directory holds 275,514 lines while the next five hold between 2,000 and 6,700 each. That distribution is a quarterly allocation report nobody had to write, and it is frequently the first place an organisation discovers that a &ldquo;small&rdquo; side project consumed a third of the effort.</p>
+
+<h2 id="u5"><span class="rank">5</span> Audit trail for AI-authored code</h2>
+<p class="answers">&ldquo;Which model wrote this, under whose instruction, on what date?&rdquo;</p>
+
+<p>Every row carries its own provenance: <code>model</code>, <code>git_branch</code>, <code>cwd</code>, <code>cc_version</code>, <code>ts</code>, <code>last_prompt</code>, and the permission mode in force. Five distinct models appear across this three-month window, so &ldquo;which model produced this change&rdquo; is a real question with a real answer &mdash; for all 406,745 rows.</p>
+
+<pre><code>SELECT ts, model, git_branch, cc_version, last_prompt
+FROM &lt;ns&gt;.session_line
+WHERE session_id = '&lt;id&gt;' AND kind = 'assistant'
+ORDER BY seq;</code></pre>
+
+<div class="verdict"><strong>For regulated organisations this is not a report &mdash; it is the precondition.</strong> Where AI-assisted changes must be attributable and reviewable after the fact, an unrecorded agent session is the blocker that keeps adoption at pilot scale. A queryable, tamper-evident archive is what turns the answer to &ldquo;can we use this in production&rdquo; from no into yes.</div>
+
+<h2 id="u6"><span class="rank">6</span> Onboarding and expertise routing</h2>
+<p class="answers">&ldquo;How does this subsystem really work, and who do I ask?&rdquo;</p>
+
+<p>A new joiner reading the final code sees the answer without the reasoning. The archive holds the reasoning: the constraints discovered the hard way, the approach abandoned in hour three, the measurement that overturned the plan.</p>
+
+<pre><code>SELECT session_id, COUNT(*) AS hits
+FROM &lt;ns&gt;.session_line
+WHERE message.content LIKE '%&lt;symbol&gt;%'
+GROUP BY session_id ORDER BY hits DESC;</code></pre>
+
+<p>Because sessions carry Claude Code&rsquo;s derived title, the index reads as a work log rather than a wall of UUIDs &mdash; for example, this plugin&rsquo;s own build sits in the archive as <em>&ldquo;store claude sessions in inventdb via hooks&rdquo;</em>, 20,772 lines. Take the highest <code>seq</code> per session, since titles are refined as a session develops:</p>
+
+<pre><code>SELECT session_id, title, MAX(seq) AS lines
+FROM &lt;ns&gt;.session_line
+WHERE title IS NOT NULL
+GROUP BY session_id, title ORDER BY lines DESC;</code></pre>
+
+<h2 id="u7"><span class="rank">7</span> Tool and command inventory</h2>
+<p class="answers">&ldquo;What are our agents actually doing all day?&rdquo;</p>
+
+<p>Because <code>PostToolUse</code> is captured with no matcher, every tool invocation lands in the archive. Counting them across this window:</p>
+
+<table>
+  <thead><tr><th>Tool</th><th class="num">Assistant lines invoking it</th></tr></thead>
+  <tbody>
+    <tr><td><code>Bash</code></td><td class="num">46,121</td></tr>
+    <tr><td><code>Read</code></td><td class="num">13,922</td></tr>
+    <tr><td><code>Edit</code></td><td class="num">10,317</td></tr>
+  </tbody>
+</table>
+
+<p>Shell execution outnumbers file editing more than four to one &mdash; a fact with direct consequences for how you write your permission allowlist, and one that no amount of intuition reliably predicts. The same data supports reviewing which commands agents run unattended, and spotting risky patterns before they become policy questions.</p>
+
+<h2 id="u8"><span class="rank">8</span> Session revival and handoff</h2>
+<p class="answers">&ldquo;Pick up where a colleague stopped &mdash; on a different machine, a week later.&rdquo;</p>
+
+<pre><code>SELECT seq, kind, role, message
+FROM &lt;ns&gt;.session_line
+WHERE session_id = '&lt;id&gt;' ORDER BY seq;</code></pre>
+
+<p>The largest session in this archive is <strong>146,667 lines</strong> &mdash; far beyond what any context window holds, which means the archive is the only complete copy in existence. Compaction is visible too: <code>session_event</code> rows record <code>SessionStart</code> with <code>source: "compact"</code>, so the detail that left the live context on compaction is still queryable in the mirror afterwards.</p>
+
+<p>Local transcripts are per-machine and subject to a retention timer. The archive is neither, so a session survives a laptop rebuild, a departure, or a timezone.</p>
+
+<h2 id="u9"><span class="rank">9</span> Harness quality engineering</h2>
+<p class="answers">&ldquo;Did that change to our agent configuration actually help?&rdquo;</p>
+
+<p>The archive is a measurement substrate for your own setup. <code>session_event</code> distinguishes clean completions from abnormal ends via <code>reason</code>; <code>queue-operation</code> rows (<strong>32,216</strong>) expose interruptions and re-steering; <code>mode</code> rows (<strong>21,522</strong>) show permission-mode switches.</p>
+
+<p>Together these let you A/B a project-instruction change, a model swap, or a tool-permission policy and <em>measure</em> the result &mdash; retry rates, interruption rates, tokens per completed task &mdash; instead of arguing about it. Every organisation running agents at scale is currently tuning this configuration blind.</p>
+
+<h2 id="u10"><span class="rank">10</span> Mining sessions into durable artifacts</h2>
+<p class="answers">&ldquo;Turn what we learned into something that outlives the session.&rdquo;</p>
+
+<p>The archive is a corpus. It generates runbooks and decision records from how work was really done, harvests recurring corrections into project instructions, and yields evaluation sets built from genuine failures rather than synthetic ones.</p>
+
+<p>Attachments come along for the ride: <strong>863 rows carry 907 inline binaries</strong> &mdash; screenshots, diagnostics, generated images &mdash; uploaded as real InventDB attachments on the row that produced them, so the evidence stays joined to its context. <code>pr-link</code> rows (877) tie sessions to the pull requests they shipped.</p>
+
+<pre><code>SELECT session_id, seq, attachments
+FROM &lt;ns&gt;.session_line
+WHERE attachments &gt; 0 AND chunk_idx = 0;</code></pre>
+
+<div class="verdict"><strong>Ranked last only because it is derived value.</strong> It needs the other nine to have filled the archive first &mdash; but it is the one that compounds.</div>
+
+<h2 id="howto">Reproducing these on your own archive</h2>
+
+<p>Install the plugin, point it at an InventDB instance, and let it build forward &mdash; or backfill your history in one command.</p>
+
+<pre><code>/plugin marketplace add inventdb/inventdb-claude-code-sessions
+/inventdb-sessions setup https://your-instance.inventdb.com</code></pre>
+
+<p>Then query with the <code>sql</code> tool over MCP, or <code>POST /sql</code> directly. Every query on this page runs unmodified against a fresh archive &mdash; substitute your namespace for <code>&lt;ns&gt;</code>.</p>
+
+<div class="box">
+<h4>Two things that make the difference</h4>
+<ul style="margin-bottom:0;">
+<li><strong>Nested document storage.</strong> Each transcript line is stored with its structure intact, so <code>message.usage.input_tokens</code>, <code>message.model</code> and <code>message.content</code> are real queryable fields. If lines were kept as opaque strings, only uses 2 and 3 would work at all &mdash; and the cost accounting in use 1 would be impossible.</li>
+<li><strong>Schemaless writes.</strong> Namespaces and types are created on first write, so nothing is declared in advance and no migration is needed when the transcript format gains a field.</li>
+</ul>
+</div>
+
+<div class="footer">
+  <p><strong>Summary.</strong> A team&rsquo;s session logs are the only record that includes the work that failed. Everything else in the toolchain is a record of success, written by the winner. That is what makes the archive worth keeping &mdash; and why a 30-day default deletion is the wrong place for it.</p>
+  <p class="small" style="margin-top:10px;">
+    <a href="https://github.com/inventdb/inventdb-claude-code-sessions">github.com/inventdb/inventdb-claude-code-sessions</a> &middot;
+    <a href="inventdb-sessions-guide.html">Install &amp; operations guide</a> &middot;
+    Apache-2.0 &middot; built by <a href="https://inventdb.com">InventDB</a>
+  </p>
+</div>
+
+</div>
+</body>
+</html>

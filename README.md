@@ -12,6 +12,10 @@ output, every file's pre-edit state, every approach that was tried and abandoned
 the only engineering artifact that includes the work which *failed*, and Claude Code
 removes it on a retention timer (30 days by default, `cleanupPeriodDays`).
 
+**[Ten things a session archive is for](docs/ten-uses.html)** — the ten highest-value uses
+for developers, teams and engineering organisations, each demonstrated with a query and a
+measured result from a real 406,745-row archive.
+
 ---
 
 ## Contents
@@ -78,7 +82,8 @@ inventdb-claude-code-sessions/
 │   ├── hooks/hooks.json                5 async capture hooks (write path)
 │   ├── scripts/ship-session.mjs        the shipper
 │   └── skills/inventdb-sessions/       /inventdb-sessions skill
-└── docs/inventdb-sessions-guide.html   the same guide, as a page
+├── docs/inventdb-sessions-guide.html   the same guide, as a page
+└── docs/ten-uses.html                  what the archive is for, with measured examples
 ```
 
 Config and state live in `~/.claude/inventdb-sync/`, never inside the plugin — the plugin
