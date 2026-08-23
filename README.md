@@ -14,7 +14,7 @@ removes it on a retention timer (30 days by default, `cleanupPeriodDays`).
 
 **[Ten things a session archive is for](docs/ten-uses.html)** — the ten highest-value uses
 for developers, teams and engineering organisations, each demonstrated with a query and a
-measured result from a real 406,745-row archive.
+measured result from a real 407,063-row archive.
 
 ---
 

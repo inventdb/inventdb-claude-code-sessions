@@ -62,18 +62,25 @@
 <p class="lede">Every figure on this page is a live query against a real archive &mdash; not an estimate, not a projection.</p>
 
 <div class="stat-row">
-  <div class="stat"><div class="v">406,745</div><div class="l">transcript rows</div></div>
-  <div class="stat"><div class="v">36</div><div class="l">sessions</div></div>
-  <div class="stat"><div class="v">3 months</div><div class="l">May&ndash;Aug 2026</div></div>
-  <div class="stat"><div class="v">32</div><div class="l">git branches</div></div>
+  <div class="stat"><div class="v">407,063</div><div class="l">transcript rows</div></div>
+  <div class="stat"><div class="v">36</div><div class="l">session ids</div></div>
+  <div class="stat"><div class="v">94 days</div><div class="l">21 May &ndash; 23 Aug 2026</div></div>
+  <div class="stat"><div class="v">31</div><div class="l">git branches</div></div>
   <div class="stat"><div class="v">82</div><div class="l">working directories</div></div>
 </div>
 
 <p>That is <strong>one developer&rsquo;s machine</strong>. An engineering organisation multiplies every number below by its headcount, and gains the cross-developer joins that a single archive cannot offer.</p>
 
+<div class="box box-key">
+<h4>The number that makes the case</h4>
+<p style="margin-bottom:0;">Those rows arrived from <strong>694 transcript files</strong>. Only <strong>282 of them still exist on disk</strong> &mdash; the retention timer has already deleted the other 412. For roughly <strong>three fifths of this archive, the mirror is the only surviving copy</strong>. That is not a projection about what could be lost; it is what was already lost on one machine in three months.</p>
+</div>
+
 <div class="box box-warn">
-<h4>Redaction notice</h4>
-<p style="margin-bottom:0;">Aggregates, counts and token totals on this page are reproduced exactly as measured. Identifiers &mdash; branch names, directory paths, file names, symbols and session titles &mdash; are redacted or replaced with placeholders such as <code>&lt;error text&gt;</code> and <code>&lt;filename&gt;</code>. The shape of every query is real; only the nouns are removed.</p>
+<h4>How these numbers were measured</h4>
+<p>Figures are a snapshot as of <strong>23 August 2026</strong>. The archive is written to continuously by live capture, so totals move between queries &mdash; treat them as a reading, not a constant.</p>
+<p>Each figure was taken with <code>COUNT(*)</code> or <code>SUM</code> under an explicit predicate, run twice and discarded unless both runs agreed, then cross-checked two further ways: against the shipper&rsquo;s own byte-and-line watermarks (694 files, 404,064 lines shipped), and against a direct scan of the surviving local transcripts. Two counts reconcile <em>exactly</em> across all three methods &mdash; <code>pr-link</code> at 877 rows and <code>file-history-delta</code> at 1,176.</p>
+<p style="margin-bottom:0;">Identifiers are redacted throughout. Branch names, directory paths, file names, symbols and session titles are replaced with roles or with placeholders such as <code>&lt;error text&gt;</code> and <code>&lt;filename&gt;</code>. The shape of every query is real; only the nouns are removed.</p>
 </div>
 
 <div class="toc">
@@ -102,16 +109,18 @@
 FROM &lt;ns&gt;.session_line;</code></pre>
 
 <table>
-  <thead><tr><th>Measure</th><th class="num">Tokens, 3 months</th></tr></thead>
+  <thead><tr><th>Measure</th><th class="num">Tokens, 94 days</th></tr></thead>
   <tbody>
-    <tr><td>Uncached input</td><td class="num">15,151,638</td></tr>
+    <tr><td>Uncached input</td><td class="num">15,151,918</td></tr>
     <tr><td>Output</td><td class="num">294,180,047</td></tr>
-    <tr><td><strong>Cache read</strong></td><td class="num"><strong>103,674,287,245</strong></td></tr>
+    <tr><td><strong>Cache read</strong></td><td class="num"><strong>103,705,719,561</strong></td></tr>
     <tr><td>Cache write</td><td class="num">1,265,627,648</td></tr>
   </tbody>
 </table>
 
 <p>Cache reads are <strong>103.7 billion tokens</strong> &mdash; roughly <strong>6,800&times;</strong> the uncached input, and <strong>82&times;</strong> the cache writes that created them. No vendor dashboard surfaces that ratio, and it is the single largest lever on the bill. Multiply each column by your rate card and the query is a finance report.</p>
+
+<p class="small">The same ratio computed independently from the local transcripts, over the 58% of the corpus that still exists on disk, comes out at 8,212&times; and 78&times; &mdash; same order, from a different source, which is what makes it worth quoting.</p>
 
 <p>The same aggregate splits by branch, which turns an unallocatable line item into per-feature cost accounting:</p>
 
@@ -124,24 +133,24 @@ GROUP BY git_branch ORDER BY cache_read DESC;</code></pre>
 <table>
   <thead><tr><th>Branch <span class="small">(names redacted)</span></th><th class="num">Lines</th><th class="num">Cache read</th></tr></thead>
   <tbody>
-    <tr><td><code>main</code></td><td class="num">269,493</td><td class="num">75.78 B</td></tr>
+    <tr><td><code>main</code></td><td class="num">269,734</td><td class="num">75.78 B</td></tr>
     <tr><td>correctness fix branch</td><td class="num">11,492</td><td class="num">3.36 B</td></tr>
     <tr><td>performance branch A</td><td class="num">5,874</td><td class="num">1.62 B</td></tr>
     <tr><td>performance branch B</td><td class="num">4,188</td><td class="num">1.40 B</td></tr>
-    <tr><td class="small" colspan="3">&hellip; 28 further branches</td></tr>
+    <tr><td class="small" colspan="3">&hellip; 27 further branches</td></tr>
   </tbody>
 </table>
 
 <p>Swap <code>git_branch</code> for <code>cwd</code> to bill by project, or for <code>model</code> to see the mix:</p>
 
 <table>
-  <thead><tr><th>Model</th><th class="num">Assistant lines</th></tr></thead>
+  <thead><tr><th>Model</th><th class="num">Rows</th></tr></thead>
   <tbody>
-    <tr><td><code>claude-opus-4-8</code></td><td class="num">97,667</td></tr>
-    <tr><td><code>claude-opus-5</code></td><td class="num">50,267</td></tr>
+    <tr><td><code>claude-opus-4-8</code></td><td class="num">96,505</td></tr>
+    <tr><td><code>claude-opus-5</code></td><td class="num">50,405</td></tr>
     <tr><td><code>claude-opus-4-7</code></td><td class="num">22,650</td></tr>
     <tr><td><code>claude-haiku-4-5</code></td><td class="num">9,331</td></tr>
-    <tr><td><code>claude-fable-5</code></td><td class="num">8,276</td></tr>
+    <tr><td><code>claude-fable-5</code></td><td class="num">8,033</td></tr>
   </tbody>
 </table>
 
@@ -156,7 +165,7 @@ GROUP BY git_branch ORDER BY cache_read DESC;</code></pre>
 FROM &lt;ns&gt;.session_line
 WHERE message.content LIKE '%&lt;error text&gt;%';</code></pre>
 
-<p>In this archive, a search for one compiler error class returns <strong>239 lines</strong> &mdash; every occurrence, with the diagnosis and the fix that followed it in the same session. A search for a single internal function name returns hits in <strong>3 distinct sessions</strong> (52, 13 and 2 lines respectively), immediately separating the session that did the real work from the two that brushed past it.</p>
+<p>In this archive, a search for one compiler error class returns <strong>241 rows</strong> &mdash; every occurrence, with the diagnosis and the fix that followed it in the same session. A search for a single internal function name returns hits in three distinct sessions with an order-of-magnitude spread between them, which immediately separates the session that did the real work from the two that brushed past it.</p>
 
 <div class="box">
 <h4>Two query rules worth knowing</h4>
@@ -174,8 +183,8 @@ WHERE message.content LIKE '%&lt;error text&gt;%';</code></pre>
 <table>
   <thead><tr><th>Line kind</th><th class="num">Rows</th><th>What it gives you</th></tr></thead>
   <tbody>
-    <tr><td><code>file-history-snapshot</code></td><td class="num">5,379</td><td>Full pre-edit file state</td></tr>
-    <tr><td><code>file-history-delta</code></td><td class="num">1,474</td><td>Incremental change records</td></tr>
+    <tr><td><code>file-history-snapshot</code></td><td class="num">4,766</td><td>Full pre-edit file state</td></tr>
+    <tr><td><code>file-history-delta</code></td><td class="num">1,176</td><td>Incremental change records</td></tr>
   </tbody>
 </table>
 
@@ -197,20 +206,20 @@ ORDER BY ts;</code></pre>
 <table>
   <thead><tr><th>Kind</th><th class="num">Rows</th><th>Kind</th><th class="num">Rows</th></tr></thead>
   <tbody>
-    <tr><td><code>assistant</code></td><td class="num">217,929</td><td><code>attachment</code></td><td class="num">22,863</td></tr>
-    <tr><td><code>user</code></td><td class="num">112,390</td><td><code>mode</code></td><td class="num">21,522</td></tr>
-    <tr><td><code>queue-operation</code></td><td class="num">32,216</td><td><code>file-history-snapshot</code></td><td class="num">5,379</td></tr>
-    <tr><td><code>ai-title</code></td><td class="num">26,492</td><td><code>file-history-delta</code></td><td class="num">1,474</td></tr>
-    <tr><td><code>last-prompt</code></td><td class="num">26,346</td><td><code>pr-link</code></td><td class="num">877</td></tr>
+    <tr><td><code>assistant</code></td><td class="num">186,977</td><td><code>attachment</code></td><td class="num">19,835</td></tr>
+    <tr><td><code>user</code></td><td class="num">97,237</td><td><code>mode</code></td><td class="num">18,808</td></tr>
+    <tr><td><code>queue-operation</code></td><td class="num">27,217</td><td><code>file-history-snapshot</code></td><td class="num">4,766</td></tr>
+    <tr><td><code>ai-title</code></td><td class="num">22,511</td><td><code>file-history-delta</code></td><td class="num">1,176</td></tr>
+    <tr><td><code>last-prompt</code></td><td class="num">22,440</td><td><code>pr-link</code></td><td class="num">877</td></tr>
   </tbody>
 </table>
 
-<p>Grouping by <code>cwd</code> distributes that effort across projects. Across <strong>82 distinct working directories</strong>, the split is steeply concentrated &mdash; the top directory holds 275,514 lines while the next five hold between 2,000 and 6,700 each. That distribution is a quarterly allocation report nobody had to write, and it is frequently the first place an organisation discovers that a &ldquo;small&rdquo; side project consumed a third of the effort.</p>
+<p>Filtering by <code>cwd</code> distributes that effort across projects. Across <strong>82 distinct working directories</strong> the split is steeply concentrated: a single directory accounts for the clear majority of all rows, while the next several sit two orders of magnitude below it. That distribution is a quarterly allocation report nobody had to write, and it is frequently the first place an organisation discovers that a &ldquo;small&rdquo; side project consumed a third of the effort.</p>
 
 <h2 id="u5"><span class="rank">5</span> Audit trail for AI-authored code</h2>
 <p class="answers">&ldquo;Which model wrote this, under whose instruction, on what date?&rdquo;</p>
 
-<p>Every row carries its own provenance: <code>model</code>, <code>git_branch</code>, <code>cwd</code>, <code>cc_version</code>, <code>ts</code>, <code>last_prompt</code>, and the permission mode in force. Five distinct models appear across this three-month window, so &ldquo;which model produced this change&rdquo; is a real question with a real answer &mdash; for all 406,745 rows.</p>
+<p>Every row carries its own provenance: <code>model</code>, <code>git_branch</code>, <code>cwd</code>, <code>cc_version</code>, <code>ts</code>, <code>last_prompt</code>, and the permission mode in force. Five distinct models appear across this 94-day window, so &ldquo;which model produced this change&rdquo; is a real question with a real answer &mdash; for every one of the 407,063 rows.</p>
 
 <pre><code>SELECT ts, model, git_branch, cc_version, last_prompt
 FROM &lt;ns&gt;.session_line
@@ -229,7 +238,7 @@ FROM &lt;ns&gt;.session_line
 WHERE message.content LIKE '%&lt;symbol&gt;%'
 GROUP BY session_id ORDER BY hits DESC;</code></pre>
 
-<p>Because sessions carry Claude Code&rsquo;s derived title, the index reads as a work log rather than a wall of UUIDs &mdash; for example, this plugin&rsquo;s own build sits in the archive as <em>&ldquo;store claude sessions in inventdb via hooks&rdquo;</em>, 20,772 lines. Take the highest <code>seq</code> per session, since titles are refined as a session develops:</p>
+<p>Because sessions carry Claude Code&rsquo;s derived title, the index reads as a work log rather than a wall of UUIDs &mdash; for example, this plugin&rsquo;s own build sits in the archive as <em>&ldquo;store claude sessions in inventdb via hooks&rdquo;</em>, 20,898 rows. Take the highest <code>seq</code> per session, since titles are refined as a session develops:</p>
 
 <pre><code>SELECT session_id, title, MAX(seq) AS lines
 FROM &lt;ns&gt;.session_line
@@ -242,15 +251,16 @@ GROUP BY session_id, title ORDER BY lines DESC;</code></pre>
 <p>Because <code>PostToolUse</code> is captured with no matcher, every tool invocation lands in the archive. Counting them across this window:</p>
 
 <table>
-  <thead><tr><th>Tool</th><th class="num">Assistant lines invoking it</th></tr></thead>
+  <thead><tr><th>Tool</th><th class="num">Assistant rows invoking it</th></tr></thead>
   <tbody>
-    <tr><td><code>Bash</code></td><td class="num">46,121</td></tr>
+    <tr><td><code>Bash</code></td><td class="num">46,180</td></tr>
     <tr><td><code>Read</code></td><td class="num">13,922</td></tr>
-    <tr><td><code>Edit</code></td><td class="num">10,317</td></tr>
+    <tr><td><code>Edit</code></td><td class="num">10,319</td></tr>
+    <tr><td><code>Write</code></td><td class="num">2,384</td></tr>
   </tbody>
 </table>
 
-<p>Shell execution outnumbers file editing more than four to one &mdash; a fact with direct consequences for how you write your permission allowlist, and one that no amount of intuition reliably predicts. The same data supports reviewing which commands agents run unattended, and spotting risky patterns before they become policy questions.</p>
+<p>Shell execution outnumbers file modification &mdash; <code>Edit</code> and <code>Write</code> combined &mdash; by <strong>3.6 to one</strong>, and outnumbers reading by more than three to one. That has direct consequences for how you write a permission allowlist, and it is not what most teams guess when asked. The same data supports reviewing which commands agents run unattended, and spotting risky patterns before they become policy questions.</p>
 
 <h2 id="u8"><span class="rank">8</span> Session revival and handoff</h2>
 <p class="answers">&ldquo;Pick up where a colleague stopped &mdash; on a different machine, a week later.&rdquo;</p>
@@ -259,14 +269,14 @@ GROUP BY session_id, title ORDER BY lines DESC;</code></pre>
 FROM &lt;ns&gt;.session_line
 WHERE session_id = '&lt;id&gt;' ORDER BY seq;</code></pre>
 
-<p>The largest session in this archive is <strong>146,667 lines</strong> &mdash; far beyond what any context window holds, which means the archive is the only complete copy in existence. Compaction is visible too: <code>session_event</code> rows record <code>SessionStart</code> with <code>source: "compact"</code>, so the detail that left the live context on compaction is still queryable in the mirror afterwards.</p>
+<p>The largest session in this archive is <strong>168,686 rows</strong>, with two more at 82,399 and 77,803 &mdash; far beyond what any context window holds, which means the archive is the only complete copy in existence. Compaction is visible too: <code>session_event</code> rows record <code>SessionStart</code> with <code>source: "compact"</code>, so the detail that left the live context on compaction is still queryable in the mirror afterwards.</p>
 
 <p>Local transcripts are per-machine and subject to a retention timer. The archive is neither, so a session survives a laptop rebuild, a departure, or a timezone.</p>
 
 <h2 id="u9"><span class="rank">9</span> Harness quality engineering</h2>
 <p class="answers">&ldquo;Did that change to our agent configuration actually help?&rdquo;</p>
 
-<p>The archive is a measurement substrate for your own setup. <code>session_event</code> distinguishes clean completions from abnormal ends via <code>reason</code>; <code>queue-operation</code> rows (<strong>32,216</strong>) expose interruptions and re-steering; <code>mode</code> rows (<strong>21,522</strong>) show permission-mode switches.</p>
+<p>The archive is a measurement substrate for your own setup. <code>session_event</code> distinguishes clean completions from abnormal ends via <code>reason</code>; <code>queue-operation</code> rows (<strong>27,217</strong>) expose interruptions and re-steering; <code>mode</code> rows (<strong>18,808</strong>) show permission-mode switches.</p>
 
 <p>Together these let you A/B a project-instruction change, a model swap, or a tool-permission policy and <em>measure</em> the result &mdash; retry rates, interruption rates, tokens per completed task &mdash; instead of arguing about it. Every organisation running agents at scale is currently tuning this configuration blind.</p>
 
