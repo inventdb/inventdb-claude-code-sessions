@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What a Claude Code session archive answers — eight uses, with live data</title>
+<style>
+  @page { size: A4 portrait; margin: 15mm 14mm; }
+
+  :root{
+    --ink:#15171c; --mut:#616b7a; --line:#e2e6ec; --rule:#c9cfd9;
+    --accent:#6A46C1; --soft:#f6f4fb; --panel:#fafbfc;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  body{
+    font:11pt/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,sans-serif;
+    color:var(--ink); background:#fff;
+    padding:26px 22px 60px;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  main{max-width:186mm; margin:0 auto}
+
+  header{border-bottom:2.5px solid var(--accent); padding-bottom:11px; margin-bottom:16px}
+  h1{font-size:19pt; line-height:1.2; letter-spacing:-.021em; font-weight:700}
+  .tagline{color:var(--mut); font-size:10pt; margin-top:4px}
+  .stamp{font-size:8.5pt; color:var(--mut); margin-top:7px; font-variant-numeric:tabular-nums}
+  .stamp b{color:var(--ink); font-weight:600}
+
+  /* archive summary strip */
+  .strip{display:flex; flex-wrap:wrap; gap:0; border:1px solid var(--line); border-radius:6px;
+         overflow:hidden; margin:0 0 20px; background:var(--panel)}
+  .cell{flex:1 1 0; min-width:82px; padding:9px 12px; border-right:1px solid var(--line)}
+  .cell:last-child{border-right:0}
+  .cell .n{font-size:13.5pt; font-weight:700; letter-spacing:-.02em; font-variant-numeric:tabular-nums; line-height:1.2}
+  .cell .k{font-size:7.5pt; text-transform:uppercase; letter-spacing:.07em; color:var(--mut); margin-top:2px}
+
+  /* use-case block */
+  .uc{break-inside:avoid; page-break-inside:avoid; margin:0 0 17px;
+      border:1px solid var(--line); border-radius:7px; overflow:hidden}
+  .uc-head{display:flex; align-items:baseline; gap:9px; padding:9px 13px 8px;
+           background:var(--soft); border-bottom:1px solid var(--line)}
+  .num{flex:0 0 auto; width:19px; height:19px; border-radius:50%; background:var(--accent);
+       color:#fff; font-size:9pt; font-weight:700; display:flex; align-items:center;
+       justify-content:center; align-self:center}
+  .uc-title{font-size:11.5pt; font-weight:670; letter-spacing:-.012em}
+  .q{padding:9px 13px 0; font-size:10pt; color:#39404d; font-style:italic}
+  .q::before{content:"\201C"} .q::after{content:"\201D"}
+  .body{padding:9px 13px 12px}
+
+  table{border-collapse:collapse; width:100%; font-size:9.5pt; margin:2px 0 0}
+  th,td{text-align:left; padding:4.5px 9px; border-bottom:1px solid var(--line)}
+  thead th{font-size:7.5pt; text-transform:uppercase; letter-spacing:.06em;
+           color:var(--mut); font-weight:640; border-bottom:1.5px solid var(--rule)}
+  tbody tr:last-child td{border-bottom:0}
+  td.n,th.n{text-align:right; font-variant-numeric:tabular-nums;
+            font-family:ui-monospace,SFMono-Regular,Consolas,monospace; white-space:nowrap}
+  tr.tot td{border-top:1.5px solid var(--rule); font-weight:700; border-bottom:0}
+  .two{display:flex; gap:20px} .two>*{flex:1 1 0; min-width:0}
+
+  code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:8.8pt;
+       background:#f2f3f6; padding:1px 4px; border-radius:3px}
+  pre{background:#f7f8fa; border:1px solid var(--line); border-left:2.5px solid var(--accent);
+      border-radius:0 5px 5px 0; padding:7px 10px; margin:7px 0 0; overflow-x:auto;
+      font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:8.6pt; line-height:1.5}
+  .note{margin-top:8px; font-size:9pt; color:#39404d; padding-left:9px;
+        border-left:2px solid var(--accent)}
+  .note b{font-weight:660}
+  .big{font-size:12pt; font-weight:700; font-variant-numeric:tabular-nums}
+  .mut{color:var(--mut)}
+
+  footer{margin-top:22px; padding-top:11px; border-top:1px solid var(--line);
+         font-size:8.5pt; color:var(--mut); break-inside:avoid}
+
+  @media print{
+    body{padding:0; font-size:10pt}
+    main{max-width:none}
+    .uc{border-color:#d8dde4}
+    header{margin-bottom:13px}
+    a{color:inherit; text-decoration:none}
+  }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <h1>What a session archive answers</h1>
+  <p class="tagline">Eight questions a team cannot answer today, each answered from live Claude&nbsp;Code session data held in InventDB.</p>
+  <p class="stamp">Snapshot <b>29 August 2026</b> &nbsp;&middot;&nbsp; namespace <code>inventdb_claude</code> &nbsp;&middot;&nbsp; engine v0.696 &nbsp;&middot;&nbsp; one developer&rsquo;s machine</p>
+</header>
+
+<div class="strip">
+  <div class="cell"><div class="n">281,082</div><div class="k">rows</div></div>
+  <div class="cell"><div class="n">36</div><div class="k">session ids</div></div>
+  <div class="cell"><div class="n">74 days</div><div class="k">16 Jun – 29 Aug</div></div>
+  <div class="cell"><div class="n">25</div><div class="k">git branches</div></div>
+  <div class="cell"><div class="n">71</div><div class="k">directories</div></div>
+  <div class="cell"><div class="n">506</div><div class="k">source files</div></div>
+</div>
+
+<!-- 1 -->
+<section class="uc">
+  <div class="uc-head"><div class="num">1</div><div class="uc-title">AI spend attribution</div></div>
+  <p class="q">What did agent-assisted engineering actually cost, and which work incurred it?</p>
+  <div class="body">
+    <div class="two">
+      <div>
+        <table>
+          <thead><tr><th>Token class</th><th class="n">Total</th></tr></thead>
+          <tbody>
+            <tr><td>Uncached input</td><td class="n">6,339,954</td></tr>
+            <tr><td>Output</td><td class="n">166,100,706</td></tr>
+            <tr><td><b>Cache read</b></td><td class="n"><b>56,605,399,732</b></td></tr>
+            <tr><td>Cache write</td><td class="n">738,330,515</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <table>
+          <thead><tr><th>Branch</th><th class="n">Rows</th></tr></thead>
+          <tbody>
+            <tr><td><code>main</code></td><td class="n">183,756</td></tr>
+            <tr><td>correctness fix branch</td><td class="n">11,492</td></tr>
+            <tr><td>performance branch A</td><td class="n">5,874</td></tr>
+            <tr><td>performance branch B</td><td class="n">4,188</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p class="note"><b>Cache reads are 8,928&times; the uncached input</b>, and 77&times; the cache writes that created them. That ratio is the single largest lever on the bill and no vendor dashboard reports it. The same <code>SUM</code> splits by branch, directory or model, so the spend becomes per-feature rather than one unallocatable line.</p>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="uc">
+  <div class="uc-head"><div class="num">2</div><div class="uc-title">Cross-team recall</div></div>
+  <p class="q">Has anyone already hit this error, and what did they try that failed?</p>
+  <div class="body">
+    <table>
+      <thead><tr><th>Search across every session</th><th class="n">Rows matched</th></tr></thead>
+      <tbody>
+        <tr><td>Runtime panics &mdash; <code>panicked at</code></td><td class="n">500</td></tr>
+        <tr><td>Compiler errors &mdash; <code>error[E0…]</code></td><td class="n">198</td></tr>
+      </tbody>
+    </table>
+    <pre>SELECT session_id, ts, git_branch FROM inventdb_claude.session_line
+WHERE message.content LIKE '%&lt;error text&gt;%';</pre>
+    <p class="note">Each match carries the diagnosis and the fix that followed it <b>in the same session</b> &mdash; including the approaches that were tried and abandoned. Nothing else in the toolchain keeps those; a commit history records only what worked.</p>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="uc">
+  <div class="uc-head"><div class="num">3</div><div class="uc-title">Incident forensics</div></div>
+  <p class="q">This broke last week. What actually changed, and what convinced us it worked?</p>
+  <div class="body">
+    <table>
+      <thead><tr><th>Evidence held</th><th class="n">Rows</th></tr></thead>
+      <tbody>
+        <tr><td>Pre-edit file snapshots</td><td class="n">2,674</td></tr>
+        <tr><td>Incremental change records</td><td class="n">1,561</td></tr>
+        <tr><td>Edits carrying exact before/after text</td><td class="n">7,889</td></tr>
+        <tr><td class="mut">&hellip; of those, touching one named source file</td><td class="n">77</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Claude Code snapshots a file before it edits it, and those snapshots are mirrored too &mdash; so prior contents are recoverable <b>even when the change was never committed</b>, was squashed, or was reverted before review. The command output that was taken as proof is stored beside the change, which shows what was <i>believed</i>, not only what was done.</p>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="uc">
+  <div class="uc-head"><div class="num">4</div><div class="uc-title">Effort and delivery ledger</div></div>
+  <p class="q">Where did the engineering effort actually go this quarter?</p>
+  <div class="body">
+    <div class="two">
+      <div>
+        <table>
+          <thead><tr><th>Record type</th><th class="n">Rows</th></tr></thead>
+          <tbody>
+            <tr><td>Assistant turns</td><td class="n">128,528</td></tr>
+            <tr><td>User turns</td><td class="n">69,759</td></tr>
+            <tr><td>Queue operations</td><td class="n">19,999</td></tr>
+            <tr><td>Prompt records</td><td class="n">14,698</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <table>
+          <thead><tr><th>Record type</th><th class="n">Rows</th></tr></thead>
+          <tbody>
+            <tr><td>Attachment records</td><td class="n">14,525</td></tr>
+            <tr><td>Session titles</td><td class="n">14,316</td></tr>
+            <tr><td>Permission-mode switches</td><td class="n">11,700</td></tr>
+            <tr><td>Shipped PR links</td><td class="n">877</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p class="note">Measured, not self-reported, and nobody filled in a timesheet. Spread across <b>71 working directories and 25 branches</b>, the distribution is steeply concentrated &mdash; which is usually where an organisation discovers that a &ldquo;small&rdquo; side project absorbed a third of the quarter.</p>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="uc">
+  <div class="uc-head"><div class="num">5</div><div class="uc-title">Audit trail for AI-authored code</div></div>
+  <p class="q">Which model wrote this, under whose instruction, on which branch, and when?</p>
+  <div class="body">
+    <table>
+      <thead><tr><th>Model</th><th class="n">Rows</th></tr></thead>
+      <tbody>
+        <tr><td><code>claude-opus-5</code></td><td class="n">67,835</td></tr>
+        <tr><td><code>claude-opus-4-8</code></td><td class="n">43,073</td></tr>
+        <tr><td><code>claude-fable-5</code></td><td class="n">13,267</td></tr>
+        <tr><td><code>claude-haiku-4-5</code></td><td class="n">4,300</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Every row carries its own provenance &mdash; <code>model</code>, <code>git_branch</code>, <code>cwd</code>, <code>cc_version</code>, <code>ts</code>, <code>last_prompt</code> and the permission mode in force &mdash; for all <b>281,082</b> of them. Four model generations appear in 74 days, so &ldquo;which model produced this change&rdquo; is a question with an actual answer. Where AI-assisted changes must be attributable after the fact, this is not a report but the precondition for adopting agents at all.</p>
+  </div>
+</section>
+
+<!-- 6 -->
+<section class="uc">
+  <div class="uc-head"><div class="num">6</div><div class="uc-title">Tool and command inventory</div></div>
+  <p class="q">What are our agents actually doing all day?</p>
+  <div class="body">
+    <table>
+      <thead><tr><th>Tool</th><th class="n">Invocations</th><th>Tool</th><th class="n">Invocations</th></tr></thead>
+      <tbody>
+        <tr><td><code>Bash</code></td><td class="n">34,612</td><td><code>PowerShell</code></td><td class="n">3,769</td></tr>
+        <tr><td><code>Read</code></td><td class="n">8,711</td><td><code>Grep</code></td><td class="n">2,851</td></tr>
+        <tr><td><code>Edit</code></td><td class="n">7,843</td><td><code>Write</code></td><td class="n">1,690</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Shell execution (<b>38,381</b> across both shells) outnumbers file modification (<b>9,533</b>) by <b>4:1</b>, and reading by more than four to one. That is rarely what a team guesses, and it points the permission allowlist at the surface that actually matters.</p>
+  </div>
+</section>
+
+<!-- 7 -->
+<section class="uc">
+  <div class="uc-head"><div class="num">7</div><div class="uc-title">Session revival and handoff</div></div>
+  <p class="q">Can I pick up a colleague&rsquo;s stalled work &mdash; on another machine, a week later?</p>
+  <div class="body">
+    <div class="two">
+      <div>
+        <table>
+          <thead><tr><th>Largest sessions</th><th class="n">Rows</th></tr></thead>
+          <tbody>
+            <tr><td>Session A</td><td class="n">82,399</td></tr>
+            <tr><td>Session B</td><td class="n">77,803</td></tr>
+            <tr><td>Session C</td><td class="n">53,369</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <table>
+          <thead><tr><th>Lifecycle events</th><th class="n">Count</th></tr></thead>
+          <tbody>
+            <tr><td>Fresh starts</td><td class="n">6</td></tr>
+            <tr><td>Restarts after <b>compaction</b></td><td class="n">3</td></tr>
+            <tr><td>Explicit resumes</td><td class="n">2</td></tr>
+            <tr><td>Session ends</td><td class="n">4</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p class="note">A single session reaches <b>82,399 rows</b> &mdash; far past what any context window holds, so the archive is the only complete copy. The three <code>compact</code> restarts matter most: detail that left the live context on compaction is still queryable in the mirror afterwards. Local transcripts are per-machine and expire on a retention timer; the archive is neither.</p>
+  </div>
+</section>
+
+<!-- 8 -->
+<section class="uc">
+  <div class="uc-head"><div class="num">8</div><div class="uc-title">Mining sessions into durable artifacts</div></div>
+  <p class="q">What can we harvest from all this so the learning outlives the session?</p>
+  <div class="body">
+    <table>
+      <thead><tr><th>Harvestable</th><th class="n">Count</th></tr></thead>
+      <tbody>
+        <tr><td>Rows carrying inline binaries</td><td class="n">748</td></tr>
+        <tr><td>Screenshots &amp; diagnostics stored as attachments</td><td class="n">762</td></tr>
+        <tr><td>Sessions tied to a shipped pull request</td><td class="n">877</td></tr>
+        <tr><td>Titled sessions usable as a work index</td><td class="n">14,316</td></tr>
+      </tbody>
+    </table>
+    <p class="note">The archive is a corpus. It generates runbooks and decision records from how work was really done, harvests recurring corrections into project instructions, and yields evaluation sets built from <b>genuine</b> failures rather than synthetic ones. Binaries are uploaded as real InventDB attachments on the row that produced them, so evidence stays joined to its context.</p>
+  </div>
+</section>
+
+<footer>
+  <p><b>How to read these numbers.</b> Each figure is a single <code>COUNT(*)</code> or <code>SUM</code>
+  under an explicit predicate against the live instance, taken on 29 August 2026. The archive is
+  written to continuously by live capture, so totals move between queries &mdash; treat them as a
+  reading, not a constant. Row counts reconcile exactly with the shipper&rsquo;s own watermarks
+  (506 files, 281,082 lines). Branch names and directory paths are redacted; the query shapes are real.</p>
+  <p style="margin-top:7px;"><b>On the companion page.</b> <a href="ten-uses.html">ten-uses.html</a>
+  is an earlier snapshot of this same archive, stamped 23 August 2026, and its totals are larger
+  &mdash; 407,063 rows from 694 source files. The namespace was rebuilt and re-imported between the
+  two readings, and a re-import can only read transcripts that still exist on disk, so sessions whose
+  source files had already passed the local retention timer are not present in this one. The two pages
+  do not disagree; they bracket that event.</p>
+</footer>
+
+</main>
+</body>
+</html>

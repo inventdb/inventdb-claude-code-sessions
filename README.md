@@ -83,7 +83,8 @@ inventdb-claude-code-sessions/
 │   ├── scripts/ship-session.mjs        the shipper
 │   └── skills/inventdb-sessions/       /inventdb-sessions skill
 ├── docs/inventdb-sessions-guide.html   the same guide, as a page
-└── docs/ten-uses.html                  what the archive is for, with measured examples
+├── docs/ten-uses.html                  what the archive is for, with measured examples
+└── docs/eight-uses.html                eight questions answered from live data, A4-printable
 ```
 
 Config and state live in `~/.claude/inventdb-sync/`, never inside the plugin — the plugin
