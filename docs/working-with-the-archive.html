@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Working with the archive — asking your team's session history, and building on it</title>
+<style>
+  @page { size: A4 portrait; margin: 15mm 14mm; }
+
+  :root{
+    --ink:#15171c; --mut:#5c6672; --line:#e3e7ec; --rule:#c6cdd6;
+    --accent:#6A46C1; --accent-soft:#f4f1fb; --panel:#fafbfc;
+    --you:#0f5fa8; --me:#6A46C1; --good:#0f7b3f; --bad:#b3261e; --warn:#8a5a00;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  body{
+    font:12pt/1.62 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,sans-serif;
+    color:var(--ink); background:#fff; padding:30px 24px 70px;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  main{max-width:180mm; margin:0 auto}
+
+  header{border-bottom:3px solid var(--accent); padding-bottom:14px; margin-bottom:20px}
+  h1{font-size:23pt; line-height:1.18; letter-spacing:-.022em; font-weight:700}
+  .tagline{color:var(--mut); font-size:11.5pt; margin-top:7px; line-height:1.5}
+
+  h2{font-size:15pt; font-weight:700; letter-spacing:-.015em; margin:30px 0 4px;
+     padding-top:16px; border-top:2px solid var(--rule)}
+  h2 .step{color:var(--accent); font-variant-numeric:tabular-nums}
+  .intro{color:#39404d; font-size:11.5pt; margin:6px 0 14px}
+
+  h3{font-size:12pt; font-weight:670; margin:20px 0 6px; letter-spacing:-.01em}
+
+  p{margin:9px 0}
+  .strip{display:flex; flex-wrap:wrap; border:1px solid var(--line); border-radius:8px;
+         overflow:hidden; margin:0 0 8px; background:var(--panel)}
+  .cell{flex:1 1 0; min-width:88px; padding:10px 13px; border-right:1px solid var(--line)}
+  .cell:last-child{border-right:0}
+  .cell .n{font-size:14pt; font-weight:700; letter-spacing:-.02em; font-variant-numeric:tabular-nums}
+  .cell .k{font-size:8pt; text-transform:uppercase; letter-spacing:.07em; color:var(--mut); margin-top:3px}
+
+  /* dialogue */
+  .qa{break-inside:avoid; page-break-inside:avoid; border:1px solid var(--line);
+      border-radius:9px; overflow:hidden; margin:14px 0}
+  .ask{background:#f2f7fc; border-left:4px solid var(--you); padding:11px 15px;
+       font-size:11.5pt; font-weight:600; color:#123a5e}
+  .ask::before{content:"You ask  "; font-size:8pt; font-weight:700; letter-spacing:.09em;
+               text-transform:uppercase; color:var(--you); display:block; margin-bottom:4px}
+  .ans{padding:12px 15px; font-size:11.5pt}
+  .ans::before{content:"I answer"; font-size:8pt; font-weight:700; letter-spacing:.09em;
+               text-transform:uppercase; color:var(--me); display:block; margin-bottom:6px}
+  .ans p:first-of-type{margin-top:0}
+  .ans p:last-child{margin-bottom:0}
+
+  .ev{background:#f7f8fa; border:1px solid var(--line); border-left:3px solid var(--accent);
+      border-radius:0 6px 6px 0; padding:9px 13px; margin:9px 0; font-size:10.5pt; line-height:1.55}
+  .ev .m{font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:9pt;
+         color:var(--mut); display:block; margin-bottom:5px}
+  .ev .err{color:var(--bad); font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:9.5pt}
+
+  table{border-collapse:collapse; width:100%; font-size:11pt; margin:10px 0}
+  th,td{text-align:left; padding:6px 10px; border-bottom:1px solid var(--line)}
+  thead th{font-size:8pt; text-transform:uppercase; letter-spacing:.06em; color:var(--mut);
+           font-weight:640; border-bottom:2px solid var(--rule)}
+  tbody tr:last-child td{border-bottom:0}
+  td.n,th.n{text-align:right; font-variant-numeric:tabular-nums;
+            font-family:ui-monospace,SFMono-Regular,Consolas,monospace; white-space:nowrap}
+  tr.key td{border-top:2px solid var(--rule); font-weight:700}
+  tr.key td:first-child{color:var(--accent)}
+
+  code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:10pt;
+       background:#f1f2f6; padding:1px 5px; border-radius:3px}
+
+  .note{background:var(--accent-soft); border-left:4px solid var(--accent);
+        border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:11.5pt}
+  .note b{font-weight:670}
+  .kicker{font-size:8pt; font-weight:700; letter-spacing:.09em; text-transform:uppercase;
+          color:var(--accent); margin-bottom:5px}
+
+  ol,ul{margin:9px 0 9px 22px} li{margin:5px 0}
+
+  footer{margin-top:34px; padding-top:16px; border-top:2px solid var(--rule);
+         font-size:10pt; color:var(--mut); break-inside:avoid}
+
+  @media print{
+    body{padding:0; font-size:10.5pt}
+    main{max-width:none}
+    h1{font-size:20pt} h2{font-size:13.5pt} h3{font-size:11pt}
+    .ask,.ans{font-size:10.5pt} table{font-size:10pt} .ev{font-size:9.5pt}
+  }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <h1>Working with the archive</h1>
+  <p class="tagline">Your team's Claude&nbsp;Code sessions are written to InventDB as they happen. This is what changes once they are: what you can ask, what I can look up while I build for you, and what the two together are worth that neither is alone.</p>
+</header>
+
+<div class="strip">
+  <div class="cell"><div class="n">281,082</div><div class="k">rows captured</div></div>
+  <div class="cell"><div class="n">62,661</div><div class="k">API requests</div></div>
+  <div class="cell"><div class="n">31</div><div class="k">named sessions</div></div>
+  <div class="cell"><div class="n">74 days</div><div class="k">16 Jun – 29 Aug</div></div>
+</div>
+<p style="font-size:10.5pt; color:var(--mut); margin-top:6px">Every example on this page is a real record from that archive.</p>
+
+<div class="note">
+  <div class="kicker">How this works</div>
+  Capture and question are two halves. Hooks write each session to InventDB as it runs. The
+  InventDB <b>MCP server</b> is registered with your Claude Code, so I can query that same
+  archive mid-conversation &mdash; in plain language from you, as SQL underneath. You never
+  write the query. I read the result and answer from it.
+</div>
+
+<h2><span class="step">1.</span> Asking me about your team's history</h2>
+<p class="intro">These are ordinary questions. What makes them answerable is that the sessions behind them were kept.</p>
+
+<div class="qa">
+  <div class="ask">We keep getting killed by the OOM reaper in CI. Has anyone here dealt with this before?</div>
+  <div class="ans">
+    <p>Yes &mdash; and more often than you'd expect. Searching every session in the archive:</p>
+    <table>
+      <thead><tr><th>Failure</th><th class="n">Rows</th><th class="n">Sessions</th></tr></thead>
+      <tbody>
+        <tr><td>Out-of-memory</td><td class="n">173</td><td class="n">7</td></tr>
+        <tr><td>Deadlocks and lock contention</td><td class="n">525</td><td class="n">7</td></tr>
+        <tr><td>Disk exhaustion</td><td class="n">43</td><td class="n">4</td></tr>
+      </tbody>
+    </table>
+    <p><b>Seven separate sessions hit out-of-memory.</b> Not one bug recurring &mdash; seven pieces of unrelated work meeting the same class of problem from scratch, across three months. I can open any of them and show you what was tried and what worked. That pattern is invisible in a commit log, because a fix gets committed and the six other encounters leave no trace.</p>
+  </div>
+</div>
+
+<div class="qa">
+  <div class="ask">I need to benchmark us against Postgres. Do we have a starting point, or am I building it?</div>
+  <div class="ans">
+    <p>You have one. A session on <b>4 August</b> titled <em>&ldquo;PostgreSQL and SQLite TPC-C benchmark configurations&rdquo;</em> did exactly this &mdash; and it cost <b>17 API requests</b>, about half an hour of someone's attention.</p>
+    <p>That's the shape of the win. Half a day of rediscovery, or one question. I can pull the configuration decisions out of that session for you now.</p>
+  </div>
+</div>
+
+<div class="qa">
+  <div class="ask">Why does the write path check a bloom filter before the segment lookup? It looks redundant.</div>
+  <div class="ans">
+    <p>Someone investigated exactly that on <b>19 August</b>, and the useful part is that their first theory was wrong. Two messages, two minutes apart:</p>
+    <div class="ev">
+      <span class="m">19 Aug 2026 · 11:41</span>
+      &ldquo;<b>I was probably wrong that the probe caused it.</b> I traced the chain properly:
+      <code>owning_segment</code> &rarr; <code>id_bloom_might_contain</code> &rarr; returns <code>true</code> when a segment has&hellip;&rdquo;
+      <span class="m" style="margin:7px 0 0">19 Aug 2026 · 11:43</span>
+      &ldquo;<b>My prime suspect looks wrong, and I'd rather say so now than let it stand.</b>&rdquo;
+    </div>
+    <p>So: the bloom filter was already traced, and the probe was already cleared as the cause. <b>No commit records a hypothesis abandoned two minutes after it was raised.</b> Without the archive your next step is to re-run that investigation and reach the same dead end.</p>
+  </div>
+</div>
+
+<div class="qa">
+  <div class="ask">Finance is asking what our AI spend actually goes on. What do I tell them?</div>
+  <div class="ans">
+    <p><b>$17,623 over 74 days</b>, at Opus&nbsp;5 list rates. The breakdown is the answer they want:</p>
+    <table>
+      <thead><tr><th>Token class</th><th class="n">Cost</th><th class="n">Share</th></tr></thead>
+      <tbody>
+        <tr><td>Cache read</td><td class="n">$14,306</td><td class="n">81%</td></tr>
+        <tr><td>Cache write</td><td class="n">$1,825</td><td class="n">10%</td></tr>
+        <tr><td>Output</td><td class="n">$1,482</td><td class="n">8%</td></tr>
+        <tr><td>Uncached input</td><td class="n">$11</td><td class="n">0%</td></tr>
+      </tbody>
+    </table>
+    <p>Uncached input &mdash; what everyone pictures when they say &ldquo;the prompt&rdquo; &mdash; is <b>$11 of $17,623</b>. The bill is re-reading cached context. And it attributes: four engineering sessions account for <b>86%</b> of all spend, led by the webhooks build at 19,358 requests. That turns one unallocatable invoice into a per-feature number.</p>
+  </div>
+</div>
+
+<div class="qa">
+  <div class="ask">Compliance wants to know which model wrote the index-correctness fix.</div>
+  <div class="ans">
+    <p><code>claude-opus-5</code>, on <b>4 August at 00:54 UTC</b>, from Claude Code client <code>2.1.220</code>. Every one of the 281,082 rows carries that provenance &mdash; model, branch, working directory, client version, timestamp, and the prompt that requested it.</p>
+    <p>Worth knowing: <b>four model generations</b> appear inside these 74 days. The index-correctness branch was not written by the same model as last month's main. When that distinction matters in an audit, it's a lookup rather than a guess.</p>
+  </div>
+</div>
+
+<h2><span class="step">2.</span> How I use the archive while building for you</h2>
+<p class="intro">You don't have to ask. When I'm working on something, the archive is a place I check &mdash; the same way I'd read the code before changing it.</p>
+
+<h3>Before I start: has this already been solved here?</h3>
+<p>If you ask me to add a benchmark harness, the first useful thing I can do is not write one. I search the archive, find the 4 August TPC-C session, and start from its conclusions. The alternative is confidently rebuilding something your team already owns.</p>
+
+<h3>While I work: what has already been ruled out?</h3>
+<p>If I'm chasing a write-path slowdown, the 19 August investigation tells me the bloom filter was traced and the probe was cleared. That is a dead end I get to skip. <b>Failed attempts are the most valuable thing in the archive precisely because nothing else keeps them</b> &mdash; every other artifact in your toolchain is a record of what worked, written by the winner.</p>
+
+<h3>When I write throwaway tooling: what did we learn last time?</h3>
+<p>Someone wrote a watcher script mid-run on 16 August and left the lesson in a comment:</p>
+<div class="ev">
+  <span class="m">16 Aug 2026 · a watcher script written mid-run</span>
+  <code># Wait for the battery legs, then run the c/s TPC-C legs. Matches</code><br>
+  <code># failure markers too - a watcher that greps only the success line</code><br>
+  <code># is silent through a crash and costs hours.</code>
+</div>
+<p>That lesson exists nowhere in the codebase. It cost someone hours to learn. Because the session was kept, the next watcher I write for you starts with it already applied.</p>
+
+<h3>Before I tell you it's done: how did we verify this last time?</h3>
+<p>The archive holds <b>2,674 pre-edit file snapshots</b> and <b>7,889 edits with exact before-and-after text</b>. Alongside them sits the command output that was taken as proof &mdash; including the times that proof was a stale binary or the wrong build. Reading how verification actually went is how I avoid repeating a false green.</p>
+
+<div class="note">
+  <div class="kicker">Why this is different from me reading your repository</div>
+  Your repository tells me what the code <b>is</b>. The archive tells me what your team
+  <b>tried</b> &mdash; the constraint discovered at hour three, the approach abandoned, the
+  benchmark that overturned the plan. Both matter, and only one of them is normally written down.
+</div>
+
+<h2><span class="step">3.</span> Where the combination compounds</h2>
+<p class="intro">One developer's session becomes the whole team's context, without anyone writing documentation.</p>
+
+<table>
+  <thead><tr><th>What one person did</th><th>What everyone gets</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Lost hours to a watcher that missed a crash</td>
+      <td>Every later watcher I write starts with failure markers built in</td>
+    </tr>
+    <tr>
+      <td>Seven people separately fought out-of-memory kills</td>
+      <td>A visible pattern, and a runbook worth writing &mdash; which nobody could see before</td>
+    </tr>
+    <tr>
+      <td>Cleared the bloom filter as a cause and said so</td>
+      <td>The next investigation skips a dead end instead of re-walking it</td>
+    </tr>
+    <tr>
+      <td>Configured TPC-C against Postgres in 17 requests</td>
+      <td>Nobody spends that half day again</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>The archive survives what people don't</h3>
+<p>Session capture ran for a month on one piece of work &mdash; <em>&ldquo;Store Claude sessions in InventDB via hooks&rdquo;</em>, 29 July to 29 August, 12,679 API requests. Along the way the context was <b>compacted twice on 28 August</b>, and resumed by hand once.</p>
+<p>Compaction throws away detail the model no longer has room for. In that session it threw away the bloom-filter investigation. <b>The archive kept it</b> &mdash; which is the only reason I can quote it to you now, and the reason a month-long thread can be handed to another person, or another machine, without starting over.</p>
+
+<div class="note">
+  <div class="kicker">The honest limitation</div>
+  This is a record of what was <b>attempted</b>, not a record of truth. A session can contain a
+  wrong conclusion stated confidently &mdash; the 19 August entry is literally someone correcting
+  themselves. When I answer from the archive I'll tell you the date, the session, and the
+  wording, so you can weigh it. Treat it as evidence, not as documentation.
+</div>
+
+<footer>
+  <b>Getting there.</b> Install the plugin, point it at your InventDB instance, and let it build
+  forward &mdash; <code>/plugin marketplace add inventdb/inventdb-claude-code-sessions</code>, then
+  <code>/inventdb-sessions setup &lt;url&gt;</code>. Capture starts with the next session; the
+  read side is the MCP server, already registered. Figures on this page are a snapshot taken
+  29 August 2026 and move as capture continues. Branch names, file paths and module names are
+  redacted; timestamps, models, counts, costs and quoted text are exactly as recorded.
+</footer>
+
+</main>
+</body>
+</html>

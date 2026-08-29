@@ -84,7 +84,8 @@ inventdb-claude-code-sessions/
 │   └── skills/inventdb-sessions/       /inventdb-sessions skill
 ├── docs/inventdb-sessions-guide.html   the same guide, as a page
 ├── docs/ten-uses.html                  what the archive is for, with measured examples
-└── docs/eight-uses.html                eight questions answered from live data, A4-printable
+├── docs/eight-uses.html                eight questions answered from live data, A4-printable
+└── docs/working-with-the-archive.html  asking your team history, and building on it
 ```
 
 Config and state live in `~/.claude/inventdb-sync/`, never inside the plugin — the plugin
