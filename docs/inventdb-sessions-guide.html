@@ -138,7 +138,9 @@ tools/claude-code-sessions/<br>
     <tr><td><code>source_file</code>, <code>agent_id</code>, <code>parent_session</code></td><td>Provenance. Subagent and workflow transcripts embed their <em>parent&rsquo;s</em> session id, so the file path is the only thing that distinguishes them.</td></tr>
     <tr><td><code>attachments</code></td><td>Count of inline binaries on that <strong>line</strong> (repeated on each chunk of a chunked line; files upload once, against <code>chunk_idx = 0</code>)</td></tr>
     <tr><td><code>uuid</code>, <code>parent_uuid</code>, <code>request_id</code>, <code>is_sidechain</code>, <code>bytes</code>, <code>chunk_idx</code>, <code>chunk_n</code></td><td>Identity, threading, size and chunking</td></tr>
-    <tr><td><em>(the whole transcript line)</em></td><td>Stored as a <strong>nested document</strong>, not a string &mdash; every original field is a real column, so <code>message.usage.input_tokens</code>, <code>message.model</code> and <code>type</code> are queryable with <code>SELECT</code>, <code>WHERE</code>, <code>SUM</code> and <code>GROUP BY</code></td></tr>
+    <tr><td><code>schema_v</code></td><td>Schema version the row was written under (currently <strong>2</strong>). Keeps a mixed archive interpretable and lets rows be re-imported selectively.</td></tr>
+    <tr><td><code>attrs</code></td><td>Generic <code>{k,v}</code> pairs holding a declared set of high-cardinality paths &mdash; <code>message.content.type</code>, <code>message.content.name</code>, <code>toolUseResult.type</code>, <code>toolUseResult.filePath</code>, <code>toolUseResult.structuredPatch.file</code>, <code>result.type</code>. Reach them through <code>attrs</code>, <strong>not</strong> as direct paths.</td></tr>
+    <tr><td><em>(the rest of the line)</em></td><td>Projected onto a declared schema before storage. <strong>Bounded subtrees stay nested and directly queryable</strong>: <code>message.usage.*</code>, <code>compactMetadata</code>, <code>error</code>, <code>backup</code>, <code>origin</code> &mdash; so <code>SUM(message.usage.input_tokens)</code>, <code>message.model</code> and <code>type</code> all work as columns. <strong>Unbounded payloads are stored as JSON text</strong>, one property each &mdash; <code>message.content</code>, tool inputs and outputs, file snapshots &mdash; still retrievable and searchable with <code>LIKE</code>, but not explodable into sub-paths.</td></tr>
     <tr><td><code>raw</code></td><td>Present <strong>only</strong> for a line that failed to parse, so nothing is ever dropped</td></tr>
   </tbody>
 </table>
@@ -261,11 +263,11 @@ WHERE title IS NOT NULL ORDER BY ts DESC;
 
 -- Has anyone already debugged this error?  (no ORDER BY — see the sorting note)
 SELECT session_id, ts, git_branch, cwd FROM &lt;ns&gt;.session_line
-WHERE raw LIKE '%&lt;error text&gt;%';
+WHERE message.content LIKE '%&lt;error text&gt;%';
 
 -- What did this file look like before it was edited?
-SELECT ts, session_id, raw FROM &lt;ns&gt;.session_line
-WHERE raw LIKE '%&lt;filename&gt;%' AND raw LIKE '%old_string%' ORDER BY ts;
+SELECT ts, session_id, message FROM &lt;ns&gt;.session_line
+WHERE message.content LIKE '%&lt;filename&gt;%' AND message.content LIKE '%old_string%' ORDER BY ts;
 
 -- Sessions that captured screenshots or other binaries
 SELECT session_id, seq, attachments FROM &lt;ns&gt;.session_line

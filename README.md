@@ -105,7 +105,10 @@ directory is versioned and replaced on update.
 | `source_file`, `agent_id`, `parent_session` | Provenance. Subagent and workflow transcripts embed their *parent's* session id, so the path is what distinguishes them. |
 | `attachments` | Count of inline binaries on that line |
 | `uuid`, `parent_uuid`, `request_id`, `is_sidechain`, `bytes`, `chunk_idx`, `chunk_n` | Identity, threading, size, chunking |
-| *(the whole transcript line)* | Stored as a **nested document**, not a string — every original field is a real column, so `message.usage.input_tokens`, `message.model` and `type` are directly queryable with `SELECT`, `WHERE`, `SUM` and `GROUP BY` |
+| `schema_v` | Schema version the row was written under (currently **2**). Keeps a mixed archive interpretable and lets rows be re-imported selectively. |
+| `attrs` | Generic `{k,v}` pairs holding a declared set of high-cardinality paths — `message.content.type`, `message.content.name`, `toolUseResult.type`, `toolUseResult.filePath`, `toolUseResult.structuredPatch.file`, `result.type`. Two properties however many paths are declared. Reach them through `attrs`, **not** as direct paths — `WHERE toolUseResult.filePath IS NOT NULL` matches nothing. |
+| *(the rest of the line)* | Projected onto a declared schema before storage. **Bounded subtrees stay nested and directly queryable**: `message.usage.*` (all token accounting), `compactMetadata`, `error`, `backup`, `origin` — so `SUM(message.usage.input_tokens)`, `message.model` and `type` all work as columns. **Unbounded payloads are stored as JSON text**, one property each — `message.content`, tool inputs and outputs, file snapshots — still fully retrievable and still searchable with `LIKE`, but not explodable into sub-paths. |
+| `raw` | Present **only** for a line that failed to parse, so nothing is ever dropped. Do not search `raw` — parsing succeeds for essentially every line, so it is empty in practice. Search `message.content` instead. |
 | `raw` | Present **only** for a line that failed to parse, so nothing is ever dropped |
 
 ### Attachments
@@ -251,11 +254,11 @@ WHERE title IS NOT NULL ORDER BY ts DESC;
 
 -- Has anyone already debugged this error?  (see the sorting note below)
 SELECT session_id, ts, git_branch, cwd FROM <ns>.session_line
-WHERE raw LIKE '%<error text>%';
+WHERE message.content LIKE '%<error text>%';
 
 -- What did this file look like before it was edited?
-SELECT ts, session_id, raw FROM <ns>.session_line
-WHERE raw LIKE '%<filename>%' AND raw LIKE '%old_string%' ORDER BY ts;
+SELECT ts, session_id, message FROM <ns>.session_line
+WHERE message.content LIKE '%<filename>%' AND message.content LIKE '%old_string%' ORDER BY ts;
 
 -- Sessions that captured screenshots or other binaries
 SELECT session_id, seq, attachments FROM <ns>.session_line
@@ -277,7 +280,7 @@ SELECT seq, kind, role, message FROM <ns>.session_line
 WHERE session_id = '<id>' ORDER BY seq;
 ```
 
-Each line is stored as a nested document, so the transcript's own structure is queryable
+Each line is projected onto a declared schema, so bounded subtrees stay queryable as columns and unbounded ones stay searchable as text
 rather than trapped in a string. `LIKE` over a text field is case-insensitive. For fuzzy
 recall use the MCP `search` tool (BM25) or `MEANING()`.
 
