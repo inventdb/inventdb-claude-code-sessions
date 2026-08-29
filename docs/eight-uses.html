@@ -5,63 +5,72 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>What a Claude Code session archive answers — eight uses, with live data</title>
 <style>
-  @page { size: A4 portrait; margin: 15mm 14mm; }
+  @page { size: A4 portrait; margin: 14mm 13mm; }
 
   :root{
     --ink:#15171c; --mut:#616b7a; --line:#e2e6ec; --rule:#c9cfd9;
-    --accent:#6A46C1; --soft:#f6f4fb; --panel:#fafbfc;
+    --accent:#6A46C1; --soft:#f6f4fb; --panel:#fafbfc; --rec:#f7f8fa;
   }
   *{box-sizing:border-box; margin:0; padding:0}
   body{
-    font:11pt/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,sans-serif;
-    color:var(--ink); background:#fff;
-    padding:26px 22px 60px;
+    font:10.5pt/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,sans-serif;
+    color:var(--ink); background:#fff; padding:26px 22px 60px;
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
   main{max-width:186mm; margin:0 auto}
 
-  header{border-bottom:2.5px solid var(--accent); padding-bottom:11px; margin-bottom:16px}
-  h1{font-size:19pt; line-height:1.2; letter-spacing:-.021em; font-weight:700}
-  .tagline{color:var(--mut); font-size:10pt; margin-top:4px}
+  header{border-bottom:2.5px solid var(--accent); padding-bottom:10px; margin-bottom:14px}
+  h1{font-size:18pt; line-height:1.2; letter-spacing:-.021em; font-weight:700}
+  .tagline{color:var(--mut); font-size:9.5pt; margin-top:3px}
 
-  .strip{display:flex; flex-wrap:wrap; gap:0; border:1px solid var(--line); border-radius:6px;
-         overflow:hidden; margin:0 0 20px; background:var(--panel)}
-  .cell{flex:1 1 0; min-width:82px; padding:9px 12px; border-right:1px solid var(--line)}
+  .strip{display:flex; flex-wrap:wrap; border:1px solid var(--line); border-radius:6px;
+         overflow:hidden; margin:0 0 16px; background:var(--panel)}
+  .cell{flex:1 1 0; min-width:78px; padding:8px 11px; border-right:1px solid var(--line)}
   .cell:last-child{border-right:0}
-  .cell .n{font-size:13.5pt; font-weight:700; letter-spacing:-.02em; font-variant-numeric:tabular-nums; line-height:1.2}
-  .cell .k{font-size:7.5pt; text-transform:uppercase; letter-spacing:.07em; color:var(--mut); margin-top:2px}
+  .cell .n{font-size:12.5pt; font-weight:700; letter-spacing:-.02em; font-variant-numeric:tabular-nums; line-height:1.2}
+  .cell .k{font-size:7pt; text-transform:uppercase; letter-spacing:.07em; color:var(--mut); margin-top:2px}
 
-  .uc{break-inside:avoid; page-break-inside:avoid; margin:0 0 17px;
+  .uc{break-inside:avoid; page-break-inside:avoid; margin:0 0 14px;
       border:1px solid var(--line); border-radius:7px; overflow:hidden}
-  .uc-head{display:flex; align-items:center; gap:9px; padding:9px 13px 8px;
+  .uc-head{display:flex; align-items:center; gap:8px; padding:8px 12px;
            background:var(--soft); border-bottom:1px solid var(--line)}
-  .num{flex:0 0 auto; width:19px; height:19px; border-radius:50%; background:var(--accent);
-       color:#fff; font-size:9pt; font-weight:700; display:flex; align-items:center;
-       justify-content:center}
-  .uc-title{font-size:11.5pt; font-weight:670; letter-spacing:-.012em}
-  .q{padding:9px 13px 2px; font-size:10pt; color:#39404d; font-style:italic}
+  .num{flex:0 0 auto; width:18px; height:18px; border-radius:50%; background:var(--accent);
+       color:#fff; font-size:8.5pt; font-weight:700; display:flex; align-items:center; justify-content:center}
+  .uc-title{font-size:11pt; font-weight:670; letter-spacing:-.012em}
+  .q{padding:8px 12px 0; font-size:9.5pt; color:#39404d; font-style:italic}
   .q::before{content:"\201C"} .q::after{content:"\201D"}
-  .body{padding:5px 13px 12px}
+  .body{padding:6px 12px 11px}
 
-  table{border-collapse:collapse; width:100%; font-size:9.5pt; margin:6px 0 0}
-  th,td{text-align:left; padding:4.5px 9px; border-bottom:1px solid var(--line)}
-  thead th{font-size:7.5pt; text-transform:uppercase; letter-spacing:.06em;
+  .lbl{font-size:7pt; text-transform:uppercase; letter-spacing:.07em; color:var(--mut);
+       font-weight:640; margin:9px 0 3px}
+  .lbl:first-child{margin-top:2px}
+
+  .rec{background:var(--rec); border:1px solid var(--line); border-left:2.5px solid var(--accent);
+       border-radius:0 5px 5px 0; padding:7px 10px; overflow-x:auto; white-space:pre;
+       font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:8pt; line-height:1.45}
+  .meta{font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:7.6pt;
+        color:var(--mut); margin-bottom:4px}
+  .add{color:#0f7b3f} .del{color:#b3261e} .ph{color:var(--accent); font-style:italic}
+
+  table{border-collapse:collapse; width:100%; font-size:9pt; margin:3px 0 0}
+  th,td{text-align:left; padding:4px 8px; border-bottom:1px solid var(--line)}
+  thead th{font-size:7pt; text-transform:uppercase; letter-spacing:.06em;
            color:var(--mut); font-weight:640; border-bottom:1.5px solid var(--rule)}
   tbody tr:last-child td{border-bottom:0}
   td.n,th.n{text-align:right; font-variant-numeric:tabular-nums;
             font-family:ui-monospace,SFMono-Regular,Consolas,monospace; white-space:nowrap}
   tr.key td{border-top:1.5px solid var(--rule); font-weight:700}
   tr.key td:first-child{color:var(--accent)}
-  .two{display:flex; gap:20px} .two>*{flex:1 1 0; min-width:0}
+  td.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:8.2pt}
+  .two{display:flex; gap:16px} .two>*{flex:1 1 0; min-width:0}
 
-  code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:8.8pt;
+  code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:8.5pt;
        background:#f2f3f6; padding:1px 4px; border-radius:3px}
 
   @media print{
-    body{padding:0; font-size:10pt}
+    body{padding:0; font-size:9.5pt}
     main{max-width:none}
-    .uc{border-color:#d8dde4}
-    header{margin-bottom:13px}
+    header{margin-bottom:11px}
   }
 </style>
 </head>
@@ -70,14 +79,14 @@
 
 <header>
   <h1>What a session archive answers</h1>
-  <p class="tagline">Eight questions, answered from live Claude&nbsp;Code session data held in InventDB.</p>
+  <p class="tagline">Eight questions, each answered with the actual records held in InventDB.</p>
 </header>
 
 <div class="strip">
   <div class="cell"><div class="n">281,082</div><div class="k">rows</div></div>
-  <div class="cell"><div class="n">36</div><div class="k">session ids</div></div>
+  <div class="cell"><div class="n">36</div><div class="k">sessions</div></div>
   <div class="cell"><div class="n">74 days</div><div class="k">16 Jun – 29 Aug</div></div>
-  <div class="cell"><div class="n">25</div><div class="k">git branches</div></div>
+  <div class="cell"><div class="n">25</div><div class="k">branches</div></div>
   <div class="cell"><div class="n">71</div><div class="k">directories</div></div>
   <div class="cell"><div class="n">506</div><div class="k">source files</div></div>
 </div>
@@ -85,49 +94,42 @@
 <!-- 1 -->
 <section class="uc">
   <div class="uc-head"><div class="num">1</div><div class="uc-title">AI spend attribution</div></div>
-  <p class="q">What did agent-assisted engineering actually cost, and which work incurred it?</p>
+  <p class="q">What did agent-assisted engineering cost, and which work incurred it?</p>
   <div class="body">
-    <div class="two">
-      <div>
-        <table>
-          <thead><tr><th>Token class</th><th class="n">Total</th></tr></thead>
-          <tbody>
-            <tr><td>Uncached input</td><td class="n">6,339,954</td></tr>
-            <tr><td>Output</td><td class="n">166,100,706</td></tr>
-            <tr><td>Cache read</td><td class="n">56,605,399,732</td></tr>
-            <tr><td>Cache write</td><td class="n">738,330,515</td></tr>
-            <tr class="key"><td>Cache read : input</td><td class="n">8,928&times;</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div>
-        <table>
-          <thead><tr><th>Spend by branch</th><th class="n">Rows</th></tr></thead>
-          <tbody>
-            <tr><td><code>main</code></td><td class="n">183,756</td></tr>
-            <tr><td>Correctness fix branch</td><td class="n">11,492</td></tr>
-            <tr><td>Performance branch A</td><td class="n">5,874</td></tr>
-            <tr><td>Performance branch B</td><td class="n">4,188</td></tr>
-            <tr class="key"><td>Branches attributed</td><td class="n">25</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <div class="lbl">Answer — the three most expensive sessions, billed out</div>
+    <table>
+      <thead><tr><th>Session</th><th class="n">Output tokens</th><th class="n">Cache read</th></tr></thead>
+      <tbody>
+        <tr><td>Webhooks implementation</td><td class="n">29,167,271</td><td class="n">17,934,106,938</td></tr>
+        <tr><td>Model integration review</td><td class="n">72,656,433</td><td class="n">15,714,556,399</td></tr>
+        <tr><td>Session capture via hooks</td><td class="n">18,617,820</td><td class="n">10,179,561,356</td></tr>
+        <tr class="key"><td>Whole archive</td><td class="n">166,100,706</td><td class="n">56,605,399,732</td></tr>
+      </tbody>
+    </table>
+    <div class="lbl">Cache read is 8,928&times; uncached input (6,339,954) — the largest lever on the bill</div>
   </div>
 </section>
 
 <!-- 2 -->
 <section class="uc">
   <div class="uc-head"><div class="num">2</div><div class="uc-title">Cross-team recall</div></div>
-  <p class="q">Has anyone already hit this error, and what did they try that failed?</p>
+  <p class="q">Has anyone already hit this error, and what did they do about it?</p>
   <div class="body">
+    <div class="lbl">Answer — the stored record, returned in full</div>
+    <p class="meta">2026-08-10 11:13:50Z &nbsp;·&nbsp; branch main &nbsp;·&nbsp; tool_result</p>
+<div class="rec">error[E0308]: mismatched types
+    --&gt; src/<span class="ph">&lt;module&gt;</span>.rs:3288:56
+     |
+3288 |     .block_device_mappings(root_volume_mapping(&amp;instance_type))
+     |                            ------------------- ^^^^^^^^^^^^^^
+     |                            expected `&amp;str`, found `&amp;InstanceType`
+     |                            arguments to this function are incorrect
+error: could not compile <span class="ph">&lt;crate&gt;</span> due to 1 previous error; 5 warnings emitted</div>
+    <div class="lbl">Same search, whole archive</div>
     <table>
-      <thead><tr><th>Search across every session</th><th class="n">Rows matched</th></tr></thead>
       <tbody>
-        <tr><td>Runtime panics &mdash; <code>panicked at</code></td><td class="n">500</td></tr>
-        <tr><td>Compiler errors &mdash; <code>error[E0…]</code></td><td class="n">198</td></tr>
-        <tr><td>Sessions searchable</td><td class="n">36</td></tr>
-        <tr class="key"><td>Assistant turns searchable</td><td class="n">128,528</td></tr>
+        <tr><td>Runtime panics &mdash; <code>panicked at</code></td><td class="n">500 rows</td></tr>
+        <tr><td>Compiler errors &mdash; <code>error[E0…]</code></td><td class="n">198 rows</td></tr>
       </tbody>
     </table>
   </div>
@@ -136,16 +138,19 @@
 <!-- 3 -->
 <section class="uc">
   <div class="uc-head"><div class="num">3</div><div class="uc-title">Incident forensics</div></div>
-  <p class="q">This broke last week. What actually changed, and what convinced us it worked?</p>
+  <p class="q">What did this file look like before the change, and who changed it?</p>
   <div class="body">
+    <div class="lbl">Answer — the edit as stored, before and after</div>
+    <p class="meta">2026-07-06 13:00:09Z &nbsp;·&nbsp; claude-fable-5 &nbsp;·&nbsp; branch main &nbsp;·&nbsp; src/main.tsx</p>
+<div class="rec">  const Report = lazy(() =&gt; import('./rooms/Report')…);
+<span class="add">+ const Files  = lazy(() =&gt; import('./rooms/Files')…);</span>
+  const Sql    = lazy(() =&gt; import('./rooms/engine/SqlStudio')…);
+  return [</div>
+    <div class="lbl">The archive stores both strings verbatim, so this is recoverable with no commit</div>
     <table>
-      <thead><tr><th>Evidence held</th><th class="n">Rows</th></tr></thead>
       <tbody>
-        <tr><td>Pre-edit file snapshots</td><td class="n">2,674</td></tr>
-        <tr><td>Incremental change records</td><td class="n">1,561</td></tr>
-        <tr><td>Edits carrying exact before/after text</td><td class="n">7,889</td></tr>
-        <tr><td>&hellip; of those, touching one named source file</td><td class="n">77</td></tr>
-        <tr class="key"><td>Recoverable without a commit</td><td class="n">all</td></tr>
+        <tr><td>Edits holding exact before/after text</td><td class="n">7,889</td></tr>
+        <tr><td>Pre-edit whole-file snapshots</td><td class="n">2,674</td></tr>
       </tbody>
     </table>
   </div>
@@ -154,84 +159,63 @@
 <!-- 4 -->
 <section class="uc">
   <div class="uc-head"><div class="num">4</div><div class="uc-title">Effort and delivery ledger</div></div>
-  <p class="q">Where did the engineering effort actually go this quarter?</p>
+  <p class="q">Where did the engineering effort actually go?</p>
   <div class="body">
-    <div class="two">
-      <div>
-        <table>
-          <thead><tr><th>Record type</th><th class="n">Rows</th></tr></thead>
-          <tbody>
-            <tr><td>Assistant turns</td><td class="n">128,528</td></tr>
-            <tr><td>User turns</td><td class="n">69,759</td></tr>
-            <tr><td>Queue operations</td><td class="n">19,999</td></tr>
-            <tr><td>Prompt records</td><td class="n">14,698</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div>
-        <table>
-          <thead><tr><th>Record type</th><th class="n">Rows</th></tr></thead>
-          <tbody>
-            <tr><td>Attachment records</td><td class="n">14,525</td></tr>
-            <tr><td>Session titles</td><td class="n">14,316</td></tr>
-            <tr><td>Permission-mode switches</td><td class="n">11,700</td></tr>
-            <tr><td>Shipped PR links</td><td class="n">877</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <div class="lbl">Answer — sessions name their own work, and carry their own size</div>
     <table>
+      <thead><tr><th>Session title, as recorded</th><th class="n">Rows</th></tr></thead>
       <tbody>
-        <tr class="key"><td>Spread across</td><td class="n">71 directories &nbsp;&middot;&nbsp; 25 branches</td></tr>
+        <tr><td>Complete webhooks implementation</td><td class="n">82,399</td></tr>
+        <tr><td>Review LLM research and model integration options</td><td class="n">77,803</td></tr>
+        <tr><td>Store Claude sessions in InventDB via hooks</td><td class="n">53,369</td></tr>
+        <tr><td>Design LLM-assisted message parsing with caching</td><td class="n">19,079</td></tr>
+        <tr><td>Resume sandbox machine setup for performance testing</td><td class="n">19,948</td></tr>
       </tbody>
     </table>
+    <div class="lbl">Spread across 71 directories and 25 branches — no timesheet involved</div>
   </div>
 </section>
 
 <!-- 5 -->
 <section class="uc">
   <div class="uc-head"><div class="num">5</div><div class="uc-title">Audit trail for AI-authored code</div></div>
-  <p class="q">Which model wrote this, under whose instruction, on which branch, and when?</p>
+  <p class="q">Which model wrote this, on which branch, with which client, and when?</p>
   <div class="body">
-    <div class="two">
-      <div>
-        <table>
-          <thead><tr><th>Model</th><th class="n">Rows</th></tr></thead>
-          <tbody>
-            <tr><td><code>claude-opus-5</code></td><td class="n">67,835</td></tr>
-            <tr><td><code>claude-opus-4-8</code></td><td class="n">43,073</td></tr>
-            <tr><td><code>claude-fable-5</code></td><td class="n">13,267</td></tr>
-            <tr><td><code>claude-haiku-4-5</code></td><td class="n">4,300</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div>
-        <table>
-          <thead><tr><th>Provenance on every row</th><th class="n">Coverage</th></tr></thead>
-          <tbody>
-            <tr><td><code>model</code>, <code>ts</code>, <code>git_branch</code></td><td class="n">281,082</td></tr>
-            <tr><td><code>cwd</code>, <code>cc_version</code></td><td class="n">281,082</td></tr>
-            <tr><td><code>last_prompt</code>, permission mode</td><td class="n">281,082</td></tr>
-            <tr class="key"><td>Model generations in 74 days</td><td class="n">4</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <div class="lbl">Answer — provenance carried on every one of the 281,082 rows</div>
+    <table>
+      <thead><tr><th>Timestamp</th><th>Model</th><th>Branch</th><th>Client</th><th class="n">Out</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">2026-06-30 21:09:23Z</td><td class="mono">claude-opus-4-8</td><td class="mono">main</td><td class="mono">2.1.186</td><td class="n">1</td></tr>
+        <tr><td class="mono">2026-07-24 06:18:19Z</td><td class="mono">claude-fable-5</td><td class="mono">main</td><td class="mono">2.1.218</td><td class="n">342</td></tr>
+        <tr><td class="mono">2026-08-04 00:54:04Z</td><td class="mono">claude-opus-5</td><td class="mono">fix branch</td><td class="mono">2.1.220</td><td class="n">417</td></tr>
+        <tr><td class="mono">2026-08-07 10:48:44Z</td><td class="mono">claude-opus-5</td><td class="mono">perf branch</td><td class="mono">2.1.223</td><td class="n">793</td></tr>
+        <tr><td class="mono">2026-08-12 15:05:58Z</td><td class="mono">claude-opus-5</td><td class="mono">main</td><td class="mono">2.1.226</td><td class="n">187</td></tr>
+      </tbody>
+    </table>
+    <div class="lbl">Four model generations and 40+ client versions inside 74 days</div>
   </div>
 </section>
 
 <!-- 6 -->
 <section class="uc">
   <div class="uc-head"><div class="num">6</div><div class="uc-title">Tool and command inventory</div></div>
-  <p class="q">What are our agents actually doing all day?</p>
+  <p class="q">What are our agents actually running?</p>
   <div class="body">
+    <div class="lbl">Answer — the commands themselves, as stored</div>
+    <p class="meta">2026-06-27 15:18:55Z &nbsp;·&nbsp; claude-haiku-4-5</p>
+<div class="rec">grep -n "defer_tools\|DEFER\|Defer" src/<span class="ph">&lt;module&gt;</span>.rs | head -30</div>
+    <p class="meta" style="margin-top:6px">2026-07-06 06:46:09Z &nbsp;·&nbsp; claude-opus-4-8</p>
+<div class="rec">git show v0.63:src/<span class="ph">&lt;module&gt;</span>.rs &gt; /tmp/before.rs
+git show HEAD:src/<span class="ph">&lt;module&gt;</span>.rs  &gt; /tmp/after.rs
+diff &lt;(sed -n '/fn execute_path/,/^    fn [a-z]/p' /tmp/before.rs) …</div>
+    <div class="lbl">Counted across the archive</div>
     <table>
-      <thead><tr><th>Tool</th><th class="n">Invocations</th><th>Tool</th><th class="n">Invocations</th></tr></thead>
       <tbody>
-        <tr><td><code>Bash</code></td><td class="n">34,612</td><td><code>PowerShell</code></td><td class="n">3,769</td></tr>
-        <tr><td><code>Read</code></td><td class="n">8,711</td><td><code>Grep</code></td><td class="n">2,851</td></tr>
-        <tr><td><code>Edit</code></td><td class="n">7,843</td><td><code>Write</code></td><td class="n">1,690</td></tr>
-        <tr class="key"><td>Shell execution</td><td class="n">38,381</td><td>File modification</td><td class="n">9,533</td></tr>
+        <tr><td><code>Bash</code> 34,612 &nbsp; <code>Read</code> 8,711 &nbsp; <code>Edit</code> 7,843</td>
+            <td class="n">&nbsp;</td></tr>
+        <tr><td><code>PowerShell</code> 3,769 &nbsp; <code>Grep</code> 2,851 &nbsp; <code>Write</code> 1,690</td>
+            <td class="n">&nbsp;</td></tr>
+        <tr class="key"><td>Shell execution vs file modification</td><td class="n">38,381 : 9,533</td></tr>
       </tbody>
     </table>
   </div>
@@ -240,32 +224,24 @@
 <!-- 7 -->
 <section class="uc">
   <div class="uc-head"><div class="num">7</div><div class="uc-title">Session revival and handoff</div></div>
-  <p class="q">Can I pick up a colleague&rsquo;s stalled work &mdash; on another machine, a week later?</p>
+  <p class="q">Can I pick up work that stopped — after a compaction, or on another machine?</p>
   <div class="body">
-    <div class="two">
-      <div>
-        <table>
-          <thead><tr><th>Largest sessions</th><th class="n">Rows</th></tr></thead>
-          <tbody>
-            <tr><td>Session A</td><td class="n">82,399</td></tr>
-            <tr><td>Session B</td><td class="n">77,803</td></tr>
-            <tr><td>Session C</td><td class="n">53,369</td></tr>
-            <tr class="key"><td>Replayable in order</td><td class="n">all</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div>
-        <table>
-          <thead><tr><th>Lifecycle events</th><th class="n">Count</th></tr></thead>
-          <tbody>
-            <tr><td>Fresh starts</td><td class="n">6</td></tr>
-            <tr><td>Restarts after compaction</td><td class="n">3</td></tr>
-            <tr><td>Explicit resumes</td><td class="n">2</td></tr>
-            <tr><td>Session ends</td><td class="n">4</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <div class="lbl">Answer — the lifecycle is recorded, including why a session restarted</div>
+    <table>
+      <thead><tr><th>Timestamp</th><th>Event</th><th>Cause</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">2026-08-27 13:25:34Z</td><td>SessionStart</td><td class="mono">resume</td></tr>
+        <tr><td class="mono">2026-08-27 14:27:37Z</td><td>SessionEnd</td><td class="mono">other</td></tr>
+        <tr><td class="mono">2026-08-28 03:56:28Z</td><td>SessionStart</td><td class="mono">compact</td></tr>
+        <tr><td class="mono">2026-08-28 15:07:50Z</td><td>SessionStart</td><td class="mono">compact</td></tr>
+      </tbody>
+    </table>
+    <div class="lbl">Detail dropped by those two compactions is still queryable in the archive</div>
+    <table>
+      <tbody>
+        <tr class="key"><td>Largest single session, replayable in order</td><td class="n">82,399 rows</td></tr>
+      </tbody>
+    </table>
   </div>
 </section>
 
@@ -274,14 +250,20 @@
   <div class="uc-head"><div class="num">8</div><div class="uc-title">Mining sessions into durable artifacts</div></div>
   <p class="q">What can we harvest so the learning outlives the session?</p>
   <div class="body">
+    <div class="lbl">Answer — the instructions people actually gave, kept verbatim</div>
+<div class="rec">"why can't we use a powerful CPU that might cost us the same, and move
+ most of the processing to the CPU instead of GPU? there are recent
+ papers that let inference techniques use CPU. study the web"
+
+"at 128k context what is our decode performance now? if it is within
+ 25% of our goal proceed with continuous batching"</div>
+    <div class="lbl">Each one is followed, in the same session, by everything that was tried</div>
     <table>
-      <thead><tr><th>Harvestable</th><th class="n">Count</th></tr></thead>
       <tbody>
-        <tr><td>Rows carrying inline binaries</td><td class="n">748</td></tr>
-        <tr><td>Screenshots &amp; diagnostics stored as attachments</td><td class="n">762</td></tr>
+        <tr><td>Prompts kept verbatim</td><td class="n">14,698</td></tr>
+        <tr><td>Screenshots &amp; diagnostics kept as attachments</td><td class="n">762</td></tr>
         <tr><td>Sessions tied to a shipped pull request</td><td class="n">877</td></tr>
-        <tr><td>Titled sessions usable as a work index</td><td class="n">14,316</td></tr>
-        <tr class="key"><td>Corpus available to mine</td><td class="n">281,082</td></tr>
+        <tr class="key"><td>Corpus available to mine</td><td class="n">281,082 rows</td></tr>
       </tbody>
     </table>
   </div>
