@@ -10,6 +10,7 @@
   :root{
     --ink:#15171c; --mut:#616b7a; --line:#e2e6ec; --rule:#c9cfd9;
     --accent:#6A46C1; --soft:#f6f4fb; --panel:#fafbfc; --rec:#f7f8fa;
+    --eng:#0f7b3f; --gtm:#8a5a00;
   }
   *{box-sizing:border-box; margin:0; padding:0}
   body{
@@ -41,16 +42,10 @@
   .q::before{content:"\201C"} .q::after{content:"\201D"}
   .body{padding:6px 12px 11px}
 
-  .lbl{font-size:7pt; text-transform:uppercase; letter-spacing:.07em; color:var(--mut);
+  .lbl{font-size:7.5pt; text-transform:uppercase; letter-spacing:.06em; color:var(--mut);
        font-weight:640; margin:9px 0 3px}
   .lbl:first-child{margin-top:2px}
-
-  .rec{background:var(--rec); border:1px solid var(--line); border-left:2.5px solid var(--accent);
-       border-radius:0 5px 5px 0; padding:7px 10px; overflow-x:auto; white-space:pre;
-       font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:8pt; line-height:1.45}
-  .meta{font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:7.6pt;
-        color:var(--mut); margin-bottom:4px}
-  .add{color:#0f7b3f} .del{color:#b3261e} .ph{color:var(--accent); font-style:italic}
+  .so{font-size:9pt; color:#39404d; margin-top:7px; padding-left:9px; border-left:2px solid var(--accent)}
 
   table{border-collapse:collapse; width:100%; font-size:9pt; margin:3px 0 0}
   th,td{text-align:left; padding:4px 8px; border-bottom:1px solid var(--line)}
@@ -59,10 +54,16 @@
   tbody tr:last-child td{border-bottom:0}
   td.n,th.n{text-align:right; font-variant-numeric:tabular-nums;
             font-family:ui-monospace,SFMono-Regular,Consolas,monospace; white-space:nowrap}
+  td.d{font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:8pt; color:var(--mut); white-space:nowrap}
   tr.key td{border-top:1.5px solid var(--rule); font-weight:700}
   tr.key td:first-child{color:var(--accent)}
-  td.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:8.2pt}
-  .two{display:flex; gap:16px} .two>*{flex:1 1 0; min-width:0}
+  .t{font-size:7pt; font-weight:700; padding:1px 5px; border-radius:3px; white-space:nowrap}
+  .t-e{background:#e7f6ed; color:var(--eng)} .t-g{background:#fff4e5; color:var(--gtm)}
+
+  .rec{background:var(--rec); border:1px solid var(--line); border-left:2.5px solid var(--accent);
+       border-radius:0 5px 5px 0; padding:7px 10px; margin-top:3px; overflow-x:auto;
+       font-size:8.6pt; line-height:1.5}
+  .rec i{color:var(--mut); font-style:normal; font-size:7.6pt}
 
   code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:8.5pt;
        background:#f2f3f6; padding:1px 4px; border-radius:3px}
@@ -79,193 +80,178 @@
 
 <header>
   <h1>What a session archive answers</h1>
-  <p class="tagline">Eight questions, each answered with the actual records held in InventDB.</p>
+  <p class="tagline">Eight questions, each answered from the real Claude&nbsp;Code sessions behind three months of InventDB engineering.</p>
 </header>
 
 <div class="strip">
   <div class="cell"><div class="n">281,082</div><div class="k">rows</div></div>
-  <div class="cell"><div class="n">36</div><div class="k">sessions</div></div>
+  <div class="cell"><div class="n">62,661</div><div class="k">API requests</div></div>
+  <div class="cell"><div class="n">31</div><div class="k">named sessions</div></div>
   <div class="cell"><div class="n">74 days</div><div class="k">16 Jun – 29 Aug</div></div>
   <div class="cell"><div class="n">25</div><div class="k">branches</div></div>
   <div class="cell"><div class="n">71</div><div class="k">directories</div></div>
-  <div class="cell"><div class="n">506</div><div class="k">source files</div></div>
 </div>
 
 <!-- 1 -->
 <section class="uc">
   <div class="uc-head"><div class="num">1</div><div class="uc-title">AI spend attribution</div></div>
-  <p class="q">What did agent-assisted engineering cost, and which work incurred it?</p>
+  <p class="q">What did each piece of work cost us?</p>
   <div class="body">
-    <div class="lbl">Answer — the three most expensive sessions, billed out</div>
+    <div class="lbl">Answer — every session priced in billed API requests</div>
     <table>
-      <thead><tr><th>Session</th><th class="n">Output tokens</th><th class="n">Cache read</th></tr></thead>
+      <thead><tr><th>The work</th><th class="n">API requests</th><th class="n">Rows</th></tr></thead>
       <tbody>
-        <tr><td>Webhooks implementation</td><td class="n">12,792,194</td><td class="n">10,415,312,004</td></tr>
-        <tr><td>Model integration review</td><td class="n">24,835,386</td><td class="n">6,322,456,590</td></tr>
-        <tr><td>Session capture via hooks</td><td class="n">7,184,711</td><td class="n">5,818,860,933</td></tr>
-        <tr class="key"><td>Whole archive</td><td class="n">59,263,965</td><td class="n">28,611,234,326</td></tr>
+        <tr><td><span class="t t-e">ENG</span> Complete InventDB webhooks implementation</td><td class="n">19,358</td><td class="n">82,399</td></tr>
+        <tr><td><span class="t t-e">ENG</span> Review LLM research and model integration options</td><td class="n">16,359</td><td class="n">77,803</td></tr>
+        <tr><td><span class="t t-e">ENG</span> Store Claude sessions in InventDB via hooks</td><td class="n">12,679</td><td class="n">53,510</td></tr>
+        <tr><td><span class="t t-e">ENG</span> Resume Graviton sandbox setup for performance testing</td><td class="n">5,272</td><td class="n">20,326</td></tr>
+        <tr><td><span class="t t-g">GTM</span> Create pitch deck for InventDB and SOAR products</td><td class="n">297</td><td class="n">1,880</td></tr>
+        <tr><td><span class="t t-g">GTM</span> Research Reddit ads feasibility for serverless database</td><td class="n">268</td><td class="n">2,084</td></tr>
+        <tr><td><span class="t t-g">GTM</span> Create employment letter</td><td class="n">93</td><td class="n">398</td></tr>
       </tbody>
     </table>
-    <div class="lbl">65,019 billed API requests — cache read averages 440,043 per request, 13,153&times; uncached input</div>
+    <p class="so">Four engineering sessions account for <b>53,668 of 62,661 requests — 86% of everything spent.</b> The pitch deck cost 297 and the employment letter 93. Until this table existed, all of it arrived as one invoice.</p>
   </div>
 </section>
 
 <!-- 2 -->
 <section class="uc">
   <div class="uc-head"><div class="num">2</div><div class="uc-title">Cross-team recall</div></div>
-  <p class="q">Has anyone already hit this error, and what did they do about it?</p>
+  <p class="q">Has anyone here already done this? I don&rsquo;t want to start from scratch.</p>
   <div class="body">
-    <div class="lbl">Answer — the stored record, returned in full</div>
-    <p class="meta">2026-08-10 11:13:50Z &nbsp;·&nbsp; branch main &nbsp;·&nbsp; tool_result</p>
-<div class="rec">error[E0308]: mismatched types
-    --&gt; src/<span class="ph">&lt;module&gt;</span>.rs:3288:56
-     |
-3288 |     .block_device_mappings(root_volume_mapping(&amp;instance_type))
-     |                            ------------------- ^^^^^^^^^^^^^^
-     |                            expected `&amp;str`, found `&amp;InstanceType`
-     |                            arguments to this function are incorrect
-error: could not compile <span class="ph">&lt;crate&gt;</span> due to 1 previous error; 5 warnings emitted</div>
-    <div class="lbl">Same search, whole archive</div>
+    <div class="lbl">Answer — three real questions, and what the archive returns</div>
     <table>
+      <thead><tr><th>Someone asks&hellip;</th><th>The archive returns</th><th class="d">When</th></tr></thead>
       <tbody>
-        <tr><td>Runtime panics &mdash; <code>panicked at</code></td><td class="n">500 rows</td></tr>
-        <tr><td>Compiler errors &mdash; <code>error[E0…]</code></td><td class="n">198 rows</td></tr>
+        <tr><td>&ldquo;How do we benchmark against Postgres?&rdquo;</td><td>PostgreSQL and SQLite TPC-C benchmark configurations</td><td class="d">04 Aug</td></tr>
+        <tr><td>&ldquo;Has anyone run us on ARM?&rdquo;</td><td>Resume Graviton sandbox setup for performance testing</td><td class="d">12–20 Aug</td></tr>
+        <tr><td>&ldquo;Where did the Apollo data end up?&rdquo;</td><td>Find Apollo enriched data storage location</td><td class="d">29 Jul</td></tr>
       </tbody>
     </table>
+    <p class="so">The TPC-C session is <b>110 rows and 17 requests</b> — half an hour of someone&rsquo;s life, and the reason nobody has to spend it twice. The archive also holds <b>500 runtime panics</b> and <b>198 compiler errors</b>, each sitting beside the fix that followed it.</p>
   </div>
 </section>
 
 <!-- 3 -->
 <section class="uc">
   <div class="uc-head"><div class="num">3</div><div class="uc-title">Incident forensics</div></div>
-  <p class="q">What did this file look like before the change, and who changed it?</p>
+  <p class="q">Something broke. What was actually done that day?</p>
   <div class="body">
-    <div class="lbl">Answer — the edit as stored, before and after</div>
-    <p class="meta">2026-07-06 13:00:09Z &nbsp;·&nbsp; claude-fable-5 &nbsp;·&nbsp; branch main &nbsp;·&nbsp; src/main.tsx</p>
-<div class="rec">  const Report = lazy(() =&gt; import('./rooms/Report')…);
-<span class="add">+ const Files  = lazy(() =&gt; import('./rooms/Files')…);</span>
-  const Sql    = lazy(() =&gt; import('./rooms/engine/SqlStudio')…);
-  return [</div>
-    <div class="lbl">The archive stores both strings verbatim, so this is recoverable with no commit</div>
+    <div class="lbl">Answer — one day of diagnostic work, replayable in full</div>
+<div class="rec"><b>Build Rust agent for InventDB repair and diagnostics</b><br>
+<i>25 Aug 2026 · one day · 961 API requests · 3,657 rows captured</i></div>
+    <div class="lbl">And across the archive, the evidence behind any change</div>
     <table>
       <tbody>
-        <tr><td>Edits holding exact before/after text</td><td class="n">7,889</td></tr>
-        <tr><td>Pre-edit whole-file snapshots</td><td class="n">2,674</td></tr>
+        <tr><td>Edits holding the exact before and after text</td><td class="n">7,889</td></tr>
+        <tr><td>Whole-file snapshots taken before an edit</td><td class="n">2,674</td></tr>
+        <tr><td>Screenshots and diagnostics kept as attachments</td><td class="n">762</td></tr>
       </tbody>
     </table>
+    <p class="so">A single day of repair work left <b>3,657 records</b>. The commit that came out of it is one line in a log; this is everything that was tried, including what did not work and the output that was mistaken for proof.</p>
   </div>
 </section>
 
 <!-- 4 -->
 <section class="uc">
   <div class="uc-head"><div class="num">4</div><div class="uc-title">Effort and delivery ledger</div></div>
-  <p class="q">Where did the engineering effort actually go?</p>
+  <p class="q">Where did the quarter actually go?</p>
   <div class="body">
-    <div class="lbl">Answer — sessions name their own work, and carry their own size</div>
+    <div class="lbl">Answer — the work, named by the people doing it, with dates and duration</div>
     <table>
-      <thead><tr><th>Session title, as recorded</th><th class="n">Rows</th></tr></thead>
+      <thead><tr><th>Session</th><th class="d">Ran</th><th class="n">Requests</th></tr></thead>
       <tbody>
-        <tr><td>Complete webhooks implementation</td><td class="n">82,399</td></tr>
-        <tr><td>Review LLM research and model integration options</td><td class="n">77,803</td></tr>
-        <tr><td>Store Claude sessions in InventDB via hooks</td><td class="n">53,369</td></tr>
-        <tr><td>Design LLM-assisted message parsing with caching</td><td class="n">19,079</td></tr>
-        <tr><td>Resume sandbox machine setup for performance testing</td><td class="n">19,948</td></tr>
+        <tr><td><span class="t t-e">ENG</span> Design LLM-assisted message parsing with caching</td><td class="d">02 Jul – 20 Aug</td><td class="n">3,753</td></tr>
+        <tr><td><span class="t t-e">ENG</span> Build Rust agent for InventDB repair and diagnostics</td><td class="d">25 Aug</td><td class="n">961</td></tr>
+        <tr><td><span class="t t-e">ENG</span> PostgreSQL and SQLite TPC-C benchmark configurations</td><td class="d">04 Aug</td><td class="n">17</td></tr>
+        <tr><td><span class="t t-g">GTM</span> Optimize website for LLM visibility</td><td class="d">07 Aug</td><td class="n">76</td></tr>
+        <tr><td><span class="t t-g">GTM</span> Create investor pitch deck for inference analog chips</td><td class="d">01 Aug</td><td class="n">263</td></tr>
+        <tr><td><span class="t t-g">GTM</span> Restaurant ingredient resale feasibility analysis</td><td class="d">11 Aug</td><td class="n">227</td></tr>
+        <tr><td><span class="t t-g">GTM</span> Download and rename stock photos for property portfolio</td><td class="d">09–10 Jul</td><td class="n">104</td></tr>
       </tbody>
     </table>
-    <div class="lbl">Spread across 71 directories and 25 branches — no timesheet involved</div>
+    <p class="so">Nobody filled in a timesheet. The message-parsing design ran <b>seven weeks</b> in the background while other work went on around it &mdash; a shape a status report never shows, because the person doing it would have called it &ldquo;ongoing&rdquo; every week.</p>
   </div>
 </section>
 
 <!-- 5 -->
 <section class="uc">
   <div class="uc-head"><div class="num">5</div><div class="uc-title">Audit trail for AI-authored code</div></div>
-  <p class="q">Which model wrote this, on which branch, with which client, and when?</p>
+  <p class="q">Which model wrote this, on what branch, and when?</p>
   <div class="body">
-    <div class="lbl">Answer — provenance carried on every one of the 281,082 rows</div>
+    <div class="lbl">Answer — provenance on every one of the 281,082 rows</div>
     <table>
-      <thead><tr><th>Timestamp</th><th>Model</th><th>Branch</th><th>Client</th><th class="n">Out</th></tr></thead>
+      <thead><tr><th class="d">Timestamp</th><th>Model</th><th>Branch</th><th class="d">Client</th></tr></thead>
       <tbody>
-        <tr><td class="mono">2026-06-30 21:09:23Z</td><td class="mono">claude-opus-4-8</td><td class="mono">main</td><td class="mono">2.1.186</td><td class="n">1</td></tr>
-        <tr><td class="mono">2026-07-24 06:18:19Z</td><td class="mono">claude-fable-5</td><td class="mono">main</td><td class="mono">2.1.218</td><td class="n">342</td></tr>
-        <tr><td class="mono">2026-08-04 00:54:04Z</td><td class="mono">claude-opus-5</td><td class="mono">fix branch</td><td class="mono">2.1.220</td><td class="n">417</td></tr>
-        <tr><td class="mono">2026-08-07 10:48:44Z</td><td class="mono">claude-opus-5</td><td class="mono">perf branch</td><td class="mono">2.1.223</td><td class="n">793</td></tr>
-        <tr><td class="mono">2026-08-12 15:05:58Z</td><td class="mono">claude-opus-5</td><td class="mono">main</td><td class="mono">2.1.226</td><td class="n">187</td></tr>
+        <tr><td class="d">2026-06-30 21:09Z</td><td>claude-opus-4-8</td><td>main</td><td class="d">2.1.186</td></tr>
+        <tr><td class="d">2026-07-24 06:18Z</td><td>claude-fable-5</td><td>main</td><td class="d">2.1.218</td></tr>
+        <tr><td class="d">2026-08-04 00:54Z</td><td>claude-opus-5</td><td>index-correctness fix</td><td class="d">2.1.220</td></tr>
+        <tr><td class="d">2026-08-07 10:48Z</td><td>claude-opus-5</td><td>query-performance work</td><td class="d">2.1.223</td></tr>
       </tbody>
     </table>
-    <div class="lbl">Four model generations and 40+ client versions inside 74 days</div>
+    <p class="so">Four model generations and dozens of client versions inside 74 days. When someone asks in six months which model produced a change on the index-correctness branch, the answer is a query rather than a guess.</p>
   </div>
 </section>
 
 <!-- 6 -->
 <section class="uc">
   <div class="uc-head"><div class="num">6</div><div class="uc-title">Tool and command inventory</div></div>
-  <p class="q">What are our agents actually running?</p>
+  <p class="q">What are the agents actually doing all day?</p>
   <div class="body">
-    <div class="lbl">Answer — the commands themselves, as stored</div>
-    <p class="meta">2026-06-27 15:18:55Z &nbsp;·&nbsp; claude-haiku-4-5</p>
-<div class="rec">grep -n "defer_tools\|DEFER\|Defer" src/<span class="ph">&lt;module&gt;</span>.rs | head -30</div>
-    <p class="meta" style="margin-top:6px">2026-07-06 06:46:09Z &nbsp;·&nbsp; claude-opus-4-8</p>
-<div class="rec">git show v0.63:src/<span class="ph">&lt;module&gt;</span>.rs &gt; /tmp/before.rs
-git show HEAD:src/<span class="ph">&lt;module&gt;</span>.rs  &gt; /tmp/after.rs
-diff &lt;(sed -n '/fn execute_path/,/^    fn [a-z]/p' /tmp/before.rs) …</div>
-    <div class="lbl">Counted across the archive</div>
+    <div class="lbl">Answer — counted across every session</div>
     <table>
+      <thead><tr><th>Tool</th><th class="n">Uses</th><th>Tool</th><th class="n">Uses</th></tr></thead>
       <tbody>
-        <tr><td><code>Bash</code> 34,612 &nbsp; <code>Read</code> 8,711 &nbsp; <code>Edit</code> 7,843</td>
-            <td class="n">&nbsp;</td></tr>
-        <tr><td><code>PowerShell</code> 3,769 &nbsp; <code>Grep</code> 2,851 &nbsp; <code>Write</code> 1,690</td>
-            <td class="n">&nbsp;</td></tr>
-        <tr class="key"><td>Shell execution vs file modification</td><td class="n">38,381 : 9,533</td></tr>
+        <tr><td>Bash</td><td class="n">34,612</td><td>PowerShell</td><td class="n">3,769</td></tr>
+        <tr><td>Read</td><td class="n">8,711</td><td>Grep</td><td class="n">2,851</td></tr>
+        <tr><td>Edit</td><td class="n">7,843</td><td>Write</td><td class="n">1,690</td></tr>
+        <tr class="key"><td>Running commands</td><td class="n">38,381</td><td>Changing files</td><td class="n">9,533</td></tr>
       </tbody>
     </table>
+    <p class="so">Agents spend <b>four times more effort running commands than editing files</b> &mdash; building, testing, grepping, diffing. Most teams write their permission allowlist as though the opposite were true.</p>
   </div>
 </section>
 
 <!-- 7 -->
 <section class="uc">
   <div class="uc-head"><div class="num">7</div><div class="uc-title">Session revival and handoff</div></div>
-  <p class="q">Can I pick up work that stopped — after a compaction, or on another machine?</p>
+  <p class="q">Can someone pick this up where it stopped?</p>
   <div class="body">
-    <div class="lbl">Answer — the lifecycle is recorded, including why a session restarted</div>
+    <div class="lbl">Answer — one piece of work, carried across a full month</div>
+<div class="rec"><b>Store Claude sessions in InventDB via hooks</b><br>
+<i>29 Jul → 29 Aug 2026 · 31 days · 12,679 API requests · 53,510 rows</i></div>
+    <div class="lbl">The restarts along the way are recorded, with their cause</div>
     <table>
-      <thead><tr><th>Timestamp</th><th>Event</th><th>Cause</th></tr></thead>
+      <thead><tr><th class="d">Timestamp</th><th>Event</th><th>Cause</th></tr></thead>
       <tbody>
-        <tr><td class="mono">2026-08-27 13:25:34Z</td><td>SessionStart</td><td class="mono">resume</td></tr>
-        <tr><td class="mono">2026-08-27 14:27:37Z</td><td>SessionEnd</td><td class="mono">other</td></tr>
-        <tr><td class="mono">2026-08-28 03:56:28Z</td><td>SessionStart</td><td class="mono">compact</td></tr>
-        <tr><td class="mono">2026-08-28 15:07:50Z</td><td>SessionStart</td><td class="mono">compact</td></tr>
+        <tr><td class="d">2026-08-27 13:25Z</td><td>SessionStart</td><td>resumed by hand</td></tr>
+        <tr><td class="d">2026-08-28 03:56Z</td><td>SessionStart</td><td>context compacted</td></tr>
+        <tr><td class="d">2026-08-28 15:07Z</td><td>SessionStart</td><td>context compacted</td></tr>
       </tbody>
     </table>
-    <div class="lbl">Detail dropped by those two compactions is still queryable in the archive</div>
-    <table>
-      <tbody>
-        <tr class="key"><td>Largest single session, replayable in order</td><td class="n">82,399 rows</td></tr>
-      </tbody>
-    </table>
+    <p class="so">Each compaction throws away detail the model no longer has room for. All of it is still in the archive afterwards &mdash; which is why a month-long thread can be handed to someone else, or to a new machine, without starting again.</p>
   </div>
 </section>
 
 <!-- 8 -->
 <section class="uc">
   <div class="uc-head"><div class="num">8</div><div class="uc-title">Mining sessions into durable artifacts</div></div>
-  <p class="q">What can we harvest so the learning outlives the session?</p>
+  <p class="q">What can we turn all this into?</p>
   <div class="body">
-    <div class="lbl">Answer — the instructions people actually gave, kept verbatim</div>
-<div class="rec">"why can't we use a powerful CPU that might cost us the same, and move
- most of the processing to the CPU instead of GPU? there are recent
- papers that let inference techniques use CPU. study the web"
-
-"at 128k context what is our decode performance now? if it is within
- 25% of our goal proceed with continuous batching"</div>
-    <div class="lbl">Each one is followed, in the same session, by everything that was tried</div>
+    <div class="lbl">Answer — the instructions people gave, kept word for word</div>
+<div class="rec">&ldquo;why can&rsquo;t we use a powerful CPU that might cost us the same, and move most
+of the processing to the CPU instead of GPU? there are recent papers that let
+inference techniques use CPU. study the web&rdquo;<br>
+<i>followed, in the same session, by every option that was evaluated and rejected</i></div>
+    <div class="lbl">And the artifacts these sessions already produced</div>
     <table>
       <tbody>
-        <tr><td>Prompts kept verbatim</td><td class="n">14,698</td></tr>
-        <tr><td>Screenshots &amp; diagnostics kept as attachments</td><td class="n">762</td></tr>
+        <tr><td>Pitch decks, carousels, video scripts, market research</td><td class="n">9 sessions</td></tr>
+        <tr><td>Prompts kept verbatim, ready to mine</td><td class="n">14,698</td></tr>
         <tr><td>Sessions tied to a shipped pull request</td><td class="n">877</td></tr>
-        <tr class="key"><td>Corpus available to mine</td><td class="n">281,082 rows</td></tr>
       </tbody>
     </table>
+    <p class="so">Runbooks written from how the work was really done, project rules harvested from corrections that kept recurring, and evaluation sets built from <b>genuine</b> failures rather than invented ones.</p>
   </div>
 </section>
 
